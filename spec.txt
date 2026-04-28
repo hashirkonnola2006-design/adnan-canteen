@@ -1,0 +1,24 @@
+<USER_REQUEST>
+You are a senior full-stack developer. Rebuild the RUCHI Smart Canteen web app 
+from scratch with the following complete specifications:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+PROJECT: RUCHI Smart Canteen
+Tech Stack: HTML/CSS/JS (frontend) + Node.js + Express + MongoDB (backend)
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+════════════════════════════
+FRONTEND PAGES (7 pages)
+════════════════════════════
+
+1. index.html — College Selector
+   - Animated glassmorphism card
+   - Dropdown to select college (CoET, CET TVM, CoE Vadakara, GEC Calicut, GEC Thrissur)
+   - Saves to localStorage
+   - Smooth page transition to welcome.html
+
+2. welcome.html — Onboarding / Name Entry
+   - Collect student name, student ID, department
+   - Warm hero section with RUCHI logo + college name
+   - "Order Now" CTA button
+<truncated 8721 bytes>

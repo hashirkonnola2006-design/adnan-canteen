@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Profile | RUCHI</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = { theme: { extend: { colors: { "primary": "#9f4122", "background": "#fff5f2", "accent": "#ff8a65", "teal": "#00bfae" } } } }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f4f6; scroll-behavior: smooth; margin: 0; height: 100vh; overflow: hidden; display: flex; justify-content: center; }
+        .mobile-container { width: 100%; max-width: 414px; height: 100vh; background-color: #fff5f2; position: relative; overflow-x: hidden; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding-bottom: 140px; }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .nav-active { color: #9f4122; background: rgba(159, 65, 34, 0.1); }
+        .nav-inactive { color: #a1a1aa; }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <header class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[414px] z-40 bg-white/80 backdrop-blur-2xl shadow-sm px-5 py-4">
+            <h1 class="text-xl font-black text-gray-900 tracking-tight leading-none">Profile</h1>
+        </header>
+
+        <main class="relative z-10 px-5 pt-24 pb-6 space-y-6">
+            <div class="glass-card rounded-[2rem] p-6 shadow-sm flex flex-col items-center text-center">
+                <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-primary to-accent text-white flex items-center justify-center font-black text-2xl shadow-lg mb-4" id="avatar">ST</div>
+                <h2 class="text-xl font-black text-gray-900" id="name">Student Name</h2>
+                <p class="text-xs font-bold text-primary uppercase tracking-widest mt-1" id="college">College Name</p>
+                <div class="flex gap-4 mt-4 bg-white/50 px-4 py-2 rounded-xl">
+                    <div><p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">ID</p><p class="text-sm font-black text-gray-900" id="stid">000</p></div>
+                    <div class="w-px bg-gray-200"></div>
+                    <div><p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Dept</p><p class="text-sm font-black text-gray-900" id="dept">CS</p></div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-[2rem] p-4 shadow-sm space-y-2">
+                <a href="owner-login.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/50 transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center"><span class="material-symbols-outlined">admin_panel_settings</span></div>
+                    <span class="text-sm font-bold text-gray-900">Admin Login</span>
+                </a>
+                <button onclick="logout()" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 transition-colors text-red-500">
+                    <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center"><span class="material-symbols-outlined">logout</span></div>
+                    <span class="text-sm font-bold">Sign Out</span>
+                </button>
+            </div>
+        </main>
+
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[414px] z-50 flex justify-around items-center px-2 pb-6 pt-3 bg-white/90 backdrop-blur-xl rounded-t-[2rem] border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+            <a href="menu.html" class="nav-inactive hover:text-gray-900 flex flex-col items-center px-4 py-2 transition-all active:scale-95"><span class="material-symbols-outlined text-[22px] mb-1">home</span><span class="text-[9px] font-bold uppercase tracking-widest">Home</span></a>
+            <a href="orders.html" class="nav-inactive hover:text-gray-900 flex flex-col items-center px-4 py-2 transition-all active:scale-95"><span class="material-symbols-outlined text-[22px] mb-1">receipt_long</span><span class="text-[9px] font-bold uppercase tracking-widest">Orders</span></a>
+            <a href="profile.html" class="nav-active flex flex-col items-center rounded-2xl px-6 py-2 transition-all"><span class="material-symbols-outlined text-[22px] mb-1" style="font-variation-settings: 'FILL' 1">person</span><span class="text-[9px] font-bold uppercase tracking-widest">Profile</span></a>
+        </nav>
+    </div>
+
+    <script>
+        window.onload = () => {
+            const name = localStorage.getItem('studentName') || 'Student';
+            document.getElementById('name').innerText = name;
+            document.getElementById('avatar').innerText = name.substring(0, 2).toUpperCase();
+            let college = localStorage.getItem('selectedCollege') || 'COET Thalassery';
+            if (college === 'CoE Thalassery') college = 'COET Thalassery';
+            document.getElementById('college').innerText = college;
+            document.getElementById('stid').innerText = localStorage.getItem('studentId') || '-';
+            document.getElementById('dept').innerText = localStorage.getItem('department') || '-';
+        };
+        function logout() {
+            const college = localStorage.getItem('selectedCollege');
+            const cart = localStorage.getItem('smartCanteenCart');
+            const isGuest = localStorage.getItem('studentId') && localStorage.getItem('studentId').startsWith('GUEST_');
+            
+            localStorage.clear();
+            
+            if (college) localStorage.setItem('selectedCollege', college);
+            if (!isGuest && cart) localStorage.setItem('smartCanteenCart', cart);
+            
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

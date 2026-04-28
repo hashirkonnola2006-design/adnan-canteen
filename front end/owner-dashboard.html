@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Owner Dashboard | RUCHI</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = { theme: { extend: { colors: { "primary": "#9f4122", "background": "#fff5f2", "accent": "#ff8a65", "teal": "#00bfae", "success": "#10b981", "warning": "#f59e0b", "error": "#ef4444" } } } }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f4f6; scroll-behavior: smooth; margin: 0; height: 100vh; overflow: hidden; display: flex; justify-content: center; }
+        .mobile-container { width: 100%; max-width: 414px; height: 100vh; background-color: #fff5f2; position: relative; overflow-x: hidden; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding-bottom: 100px; }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .dash-tab { display: none; animation: fadeIn 0.3s ease forwards; }
+        .dash-tab.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-active { color: #9f4122; background: rgba(159, 65, 34, 0.1); }
+        .nav-inactive { color: #a1a1aa; }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <header class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[414px] z-50 flex items-center justify-between px-5 h-16 bg-white/80 backdrop-blur-2xl shadow-sm rounded-b-2xl">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-tr from-primary to-accent rounded-lg flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span></div>
+                <div><h1 class="text-sm font-black tracking-tight text-gray-900 leading-none">Dashboard</h1><p class="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Admin Panel</p></div>
+            </div>
+            <button onclick="logout()" class="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1.5 rounded-full active:scale-95 flex items-center gap-1"><span class="material-symbols-outlined text-sm">logout</span> Exit</button>
+        </header>
+
+        <main class="relative z-10 px-5 pt-20 flex flex-col min-h-screen">
+            <div id="tab-overview" class="dash-tab active space-y-6">
+
+                <div class="glass-card rounded-[2rem] p-6 shadow-sm">
+                    <div class="mb-4"><p class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Today's Revenue</p><div class="text-4xl font-black mt-1 text-gray-900">₹<span id="stat-revenue">0</span></div></div>
+                    <div class="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-gray-200">
+                        <div><p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Total Orders</p><p class="text-xl font-black text-gray-900" id="stat-orders">0</p></div>
+                        <div><p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Pending</p><p class="text-xl font-black text-warning" id="stat-pending">0</p></div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-[2rem] p-6 shadow-sm min-h-[50vh]">
+                    <div class="flex items-center justify-between mb-4 border-b border-gray-200 pb-2">
+                        <h3 class="text-sm font-extrabold text-primary uppercase tracking-widest">Pending Orders</h3>
+                        <span id="pending-badge" class="bg-primary/10 text-primary px-2 py-0.5 rounded-md font-bold text-xs">0</span>
+                    </div>
+                    <div id="pending-list" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <div id="tab-menu" class="dash-tab space-y-6">
+                <div class="glass-card rounded-[2rem] p-6 shadow-sm min-h-[60vh]">
+                    <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2">
+                        <h3 class="text-sm font-extrabold text-gray-900 uppercase tracking-widest">Manage Menu</h3>
+                        <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md" id="menu-count">0 Items</span>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Add New Item</p>
+                        <div class="space-y-3">
+                            <input type="text" id="new-item-name" placeholder="Item Name (e.g., Chicken Biriyani)" class="w-full px-4 py-3 text-sm font-bold border border-gray-200 focus:ring-2 focus:ring-primary rounded-xl bg-white text-gray-900 outline-none">
+                            <div class="flex gap-2">
+                                <div class="relative flex-1">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                                    <input type="number" id="new-item-price" placeholder="Price" class="w-full pl-8 pr-3 py-3 text-sm font-bold border border-gray-200 focus:ring-2 focus:ring-primary rounded-xl bg-white outline-none">
+                                </div>
+                                <select id="new-item-category" class="flex-1 px-4 py-3 text-sm font-bold border border-gray-200 focus:ring-2 focus:ring-primary rounded-xl bg-white outline-none">
+                                    <option value="Meals">Meals</option><option value="Snacks">Snacks</option><option value="Drinks">Drinks</option>
+                                </select>
+                            </div>
+                            <button onclick="addMenu()" class="w-full bg-gray-900 hover:bg-black text-white rounded-xl py-3 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md mt-1">
+                                <span class="material-symbols-outlined text-lg">add_circle</span> Add Item to Menu
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pl-1">Current Menu Items</p>
+                    <div id="menu-list" class="space-y-4"></div>
+                </div>
+            </div>
+            <div id="tab-settings" class="dash-tab space-y-6">
+                <div class="glass-card rounded-[2rem] p-6 shadow-sm min-h-[60vh]">
+                    <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2"><h3 class="text-sm font-extrabold text-gray-900 uppercase tracking-widest">Store Settings</h3></div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Canteen Name</label>
+                            <input type="text" id="set-canteen-name" class="w-full bg-white/70 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-primary mt-1">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Receiving UPI ID</label>
+                            <input type="text" id="set-owner-upi" class="w-full bg-white/70 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-primary mt-1">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Contact Phone</label>
+                            <input type="text" id="set-owner-phone" class="w-full bg-white/70 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-primary mt-1">
+                        </div>
+                        <button onclick="saveSettings(event)" class="w-full bg-primary hover:bg-accent text-white font-black py-4 rounded-xl shadow-lg active:scale-95 transition-all uppercase text-[10px] tracking-widest mt-2 flex justify-center items-center gap-2">
+                            Save Settings <span class="material-symbols-outlined text-sm">save</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[414px] z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/90 backdrop-blur-xl rounded-t-[2rem] border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+            <button onclick="switchTab('tab-overview', this)" class="nav-btn nav-active flex flex-col items-center rounded-2xl px-6 py-2 transition-all"><span class="material-symbols-outlined text-[22px] mb-1">insights</span><span class="text-[9px] font-bold tracking-[0.1em] uppercase">Overview</span></button>
+            <button onclick="switchTab('tab-menu', this)" class="nav-btn nav-inactive flex flex-col items-center hover:text-gray-900 active:scale-95 px-4 py-2 transition-all"><span class="material-symbols-outlined text-[22px] mb-1">menu_book</span><span class="text-[9px] font-bold tracking-[0.1em] uppercase">Menu Edit</span></button>
+            <button onclick="switchTab('tab-settings', this)" class="nav-btn nav-inactive flex flex-col items-center hover:text-gray-900 active:scale-95 px-4 py-2 transition-all"><span class="material-symbols-outlined text-[22px] mb-1">settings</span><span class="text-[9px] font-bold tracking-[0.1em] uppercase">Settings</span></button>
+        </nav>
+    </div>
+
+    <script>
+        let allOrders = [];
+        let menuData = [];
+
+        async function verifyAuth() {
+            if (!localStorage.getItem('adminToken')) window.location.href = 'owner-login.html';
+        }
+
+        async function fetchSettings() {
+            try {
+                const res = await fetch('http://localhost:5000/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if(data.canteen_name) document.getElementById('set-canteen-name').value = data.canteen_name;
+                    if(data.owner_upi) document.getElementById('set-owner-upi').value = data.owner_upi;
+                    if(data.owner_phone) document.getElementById('set-owner-phone').value = data.owner_phone;
+                }
+            } catch(e) {}
+        }
+
+        async function saveSettings(e) {
+            const btn = e.currentTarget;
+            const ogText = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">autorenew</span> Saving`;
+            const payload = {
+                canteen_name: document.getElementById('set-canteen-name').value,
+                owner_upi: document.getElementById('set-owner-upi').value,
+                owner_phone: document.getElementById('set-owner-phone').value
+            };
+            try {
+                await fetch('http://localhost:5000/api/settings', {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                alert("Settings saved!");
+            } catch(e) { alert("Failed to save"); }
+            btn.innerHTML = ogText;
+        }
+
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.dash-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn nav-inactive flex flex-col items-center hover:text-gray-900 active:scale-95 px-4 py-2 transition-all");
+            document.getElementById(tabId).classList.add('active');
+            btnElement.className = "nav-btn nav-active flex flex-col items-center rounded-2xl px-6 py-2 transition-all";
+        }
+
+        async function fetchOrders() {
+            try {
+                const res = await fetch('http://localhost:5000/api/orders');
+                if (res.ok) { allOrders = await res.json(); renderDashboard(); }
+            } catch (e) { console.error(e); }
+        }
+
+        async function fetchMenu() {
+            try {
+                const res = await fetch('http://localhost:5000/api/menu');
+                if (res.ok) { menuData = await res.json(); renderMenu(); }
+            } catch (e) { console.error(e); }
+        }
+
+        function renderDashboard() {
+            const pending = allOrders.filter(o => o.status === 'pending');
+            const completed = allOrders.filter(o => o.status === 'completed');
+            document.getElementById('stat-revenue').innerText = completed.reduce((sum, o) => sum + o.total, 0);
+            document.getElementById('stat-orders').innerText = allOrders.length;
+            document.getElementById('stat-pending').innerText = pending.length;
+            document.getElementById('pending-badge').innerText = pending.length;
+
+            const list = document.getElementById('pending-list');
+            list.innerHTML = '';
+            if (pending.length === 0) { list.innerHTML = `<p class="text-xs text-center text-gray-500 py-6 font-bold uppercase tracking-widest">No pending orders</p>`; }
+            else {
+                pending.forEach(order => {
+                    const itemsStr = Object.values(order.items).map(i => `${i.qty}x ${i.name}`).join(', ');
+                    list.innerHTML += `
+                    <div class="bg-white/50 border border-gray-200 rounded-2xl p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div><span class="text-xs font-black text-gray-900">#${order.id}</span><span class="text-[10px] font-bold text-gray-500 ml-2">${order.studentName}</span></div>
+                            <span class="text-sm font-black text-primary">₹${order.total}</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-800 mb-2">${itemsStr}</p>
+                        ${order.paymentMethod !== 'cash' ? `<p class="text-[10px] font-bold text-primary bg-primary/5 inline-block px-2 py-1 rounded mb-1 border border-primary/10">Awaiting QR Scan</p>` : `<p class="text-[10px] font-bold text-gray-600 bg-gray-100 inline-block px-2 py-1 rounded mb-1 border border-gray-200">Cash Payment</p>`}
+                    </div>`;
+                });
+            }
+        }
+
+        async function updateStatus(id, status) {
+            try { await fetch(`http://localhost:5000/api/orders/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); fetchOrders(); } catch (e) { console.error(e); }
+        }
+
+        function renderMenu() {
+            document.getElementById('menu-count').innerText = `${menuData.length} Items`;
+            const sortedMenu = [...menuData].sort((a, b) => {
+                const aAvail = a.available !== false ? 1 : 0;
+                const bAvail = b.available !== false ? 1 : 0;
+                return bAvail - aAvail;
+            });
+            document.getElementById('menu-list').innerHTML = sortedMenu.map(item => `
+                <div class="bg-white border ${item.available ? 'border-gray-200' : 'border-red-200 bg-red-50/30'} rounded-2xl p-4 flex flex-col gap-3 shadow-sm transition-all relative overflow-hidden">
+                    ${!item.available ? '<div class="absolute -right-6 top-3 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-8 py-0.5 rotate-45 shadow-sm z-10">Sold Out</div>' : ''}
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-6">
+                            <h4 class="font-bold text-gray-900 text-sm leading-tight">${item.name}</h4>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">${item.category}</div>
+                        </div>
+                        <button onclick="deleteMenu('${item._id}')" class="text-gray-400 hover:text-red-500 active:scale-90 transition-all"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mt-1 pt-3 border-t ${item.available ? 'border-gray-100' : 'border-red-100'}">
+                        <div class="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-1">
+                            <span class="text-xs font-black text-gray-500 pl-2">₹</span>
+                            <input type="number" id="price-${item._id}" value="${item.price}" class="w-12 px-1 py-1 text-sm font-black text-gray-900 bg-transparent border-0 focus:ring-0 outline-none text-center">
+                            <button onclick="updatePrice('${item._id}')" class="bg-primary text-white rounded-md px-2 py-1 text-[9px] font-bold uppercase tracking-widest shadow-sm active:scale-95">Save</button>
+                        </div>
+                        
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <span class="text-[10px] font-bold uppercase tracking-widest ${item.available ? 'text-success' : 'text-red-500'}">${item.available ? 'In Stock' : 'Over'}</span>
+                            <div class="relative">
+                                <input type="checkbox" class="sr-only peer" ${item.available ? 'checked' : ''} onchange="toggleAvailable('${item._id}', this.checked)">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-success shadow-inner"></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>`).join('');
+        }
+
+        async function addMenu() {
+            const name = document.getElementById('new-item-name').value;
+            const price = document.getElementById('new-item-price').value;
+            const category = document.getElementById('new-item-category').value;
+            if (!name || !price) return alert('Enter name and price');
+            
+            const encodedName = encodeURIComponent(name);
+            const imgUrl = `https://image.pollinations.ai/prompt/a%20delicious%20plate%20of%20${encodedName}%20realistic%20food%20photography?width=400&height=400&nologo=true&seed=42`;
+            
+            try {
+                await fetch('http://localhost:5000/api/menu', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, price, category, subtitle: category, img: imgUrl }) });
+                document.getElementById('new-item-name').value = ''; document.getElementById('new-item-price').value = ''; fetchMenu();
+            } catch (e) { console.error(e); }
+        }
+
+        async function updatePrice(id) {
+            const price = document.getElementById(`price-${id}`).value;
+            try { await fetch(`http://localhost:5000/api/menu/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ price }) }); alert("Price Saved!"); } catch (e) { console.error(e); }
+        }
+
+        async function toggleAvailable(id, isAvailable) {
+            try { 
+                await fetch(`http://localhost:5000/api/menu/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ available: isAvailable }) }); 
+                fetchMenu(); 
+            } catch (e) { console.error(e); alert("Failed to update status"); }
+        }
+
+        async function deleteMenu(id) {
+            if (!confirm('Delete this item?')) return;
+            try { await fetch(`http://localhost:5000/api/menu/${id}`, { method: 'DELETE' }); fetchMenu(); } catch (e) { console.error(e); }
+        }
+
+        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'owner-login.html'; }
+        window.onload = () => { verifyAuth(); fetchOrders(); fetchMenu(); fetchSettings(); setInterval(fetchOrders, 10000); };
+    </script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Orders | RUCHI</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { "primary": "#9f4122", "background": "#fff5f2", "accent": "#ff8a65", "teal": "#00bfae" } } } }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f4f6; scroll-behavior: smooth; margin: 0; height: 100vh; overflow: hidden; display: flex; justify-content: center; }
+        .mobile-container { width: 100%; max-width: 414px; height: 100vh; background-color: #fff5f2; position: relative; overflow-x: hidden; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding-bottom: 140px; }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .nav-active { color: #9f4122; background: rgba(159, 65, 34, 0.1); }
+        .nav-inactive { color: #a1a1aa; }
+        .fade-up { animation: fadeUp 0.5s ease-out forwards; opacity: 0; transform: translateY(20px); }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <header class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[414px] z-40 bg-white/80 backdrop-blur-2xl shadow-sm px-5 py-4 pb-3">
+            <h1 class="text-xl font-black text-gray-900 tracking-tight leading-none mb-4">My Orders</h1>
+            <div class="flex gap-2">
+                <button onclick="setTab('pending')" id="tab-pending" class="flex-1 py-2 rounded-xl text-xs font-bold uppercase tracking-widest bg-primary text-white transition-all shadow-sm">Pending</button>
+                <button onclick="setTab('completed')" id="tab-completed" class="flex-1 py-2 rounded-xl text-xs font-bold uppercase tracking-widest bg-white text-gray-500 transition-all border border-gray-200">History</button>
+            </div>
+        </header>
+
+        <main class="relative z-10 px-5 pt-32 pb-6">
+            <div id="loading" class="text-center py-10"><span class="material-symbols-outlined animate-spin text-primary">autorenew</span></div>
+            <div id="orders-list" class="space-y-4"></div>
+        </main>
+
+        <!-- Order QR Modal -->
+        <div id="order-qr-modal" class="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none flex items-center justify-center px-4">
+            <div class="w-full max-w-[340px] bg-white rounded-3xl p-6 transform transition-transform duration-300 scale-95 shadow-2xl flex flex-col items-center text-center" id="order-qr-sheet">
+                <div class="flex justify-between items-center w-full mb-4">
+                    <h3 class="text-lg font-black text-gray-900" id="qr-order-id">Order ID</h3>
+                    <button onclick="closeQRModal()" class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full"><span class="material-symbols-outlined">close</span></button>
+                </div>
+                <p class="text-xs font-bold text-gray-500 mb-6">Scan this QR at the counter to print your bill.</p>
+                <div class="p-3 bg-white border-2 border-gray-100 rounded-2xl shadow-sm mb-6" id="order-qrcode"></div>
+            </div>
+        </div>
+
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[414px] z-50 flex justify-around items-center px-2 pb-6 pt-3 bg-white/90 backdrop-blur-xl rounded-t-[2rem] border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+            <a href="menu.html" class="nav-inactive hover:text-gray-900 flex flex-col items-center px-4 py-2 transition-all active:scale-95"><span class="material-symbols-outlined text-[22px] mb-1">home</span><span class="text-[9px] font-bold uppercase tracking-widest">Home</span></a>
+            <a href="orders.html" class="nav-active flex flex-col items-center rounded-2xl px-6 py-2 transition-all"><span class="material-symbols-outlined text-[22px] mb-1" style="font-variation-settings: 'FILL' 1">receipt_long</span><span class="text-[9px] font-bold uppercase tracking-widest">Orders</span></a>
+            <a href="profile.html" class="nav-inactive hover:text-gray-900 flex flex-col items-center px-4 py-2 transition-all active:scale-95"><span class="material-symbols-outlined text-[22px] mb-1">person</span><span class="text-[9px] font-bold uppercase tracking-widest">Profile</span></a>
+        </nav>
+    </div>
+
+    <script>
+        let allOrders = [];
+        let currentTab = 'pending';
+
+        async function fetchOrders() {
+            try {
+                const res = await fetch('http://localhost:5000/api/orders');
+                if (res.ok) {
+                    const data = await res.json();
+                    const stId = localStorage.getItem('studentId');
+                    allOrders = data.filter(o => o.studentId === stId);
+                    document.getElementById('loading').style.display = 'none';
+                    renderOrders();
+                }
+            } catch(e) { document.getElementById('loading').innerHTML = `<p class="text-xs text-red-500 font-bold">Failed to load orders.</p>`; }
+        }
+
+        function setTab(tab) {
+            currentTab = tab;
+            document.getElementById('tab-pending').className = tab === 'pending' ? "flex-1 py-2 rounded-xl text-xs font-bold uppercase tracking-widest bg-primary text-white transition-all shadow-sm" : "flex-1 py-2 rounded-xl text-xs font-bold uppercase tracking-widest bg-white text-gray-500 transition-all border border-gray-200";
+            document.getElementById('tab-completed').className = tab === 'completed' ? "flex-1 py-2 rounded-xl text-xs font-bold uppercase tracking-widest bg-primary text-white transition-all shadow-sm" : "flex-1 py-2 rounded-xl text-xs font-bold uppercase tracking-widest bg-white text-gray-500 transition-all border border-gray-200";
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const list = document.getElementById('orders-list');
+            list.innerHTML = '';
+            const filtered = allOrders.filter(o => currentTab === 'pending' ? o.status === 'pending' : o.status !== 'pending');
+
+            if(filtered.length === 0) {
+                list.innerHTML = `<div class="text-center py-10"><p class="text-sm font-bold text-gray-500">No ${currentTab} orders.</p></div>`;
+                return;
+            }
+
+            filtered.forEach((order, i) => {
+                const itemsStr = Object.values(order.items || {}).map(d => `${d.qty}x ${d.name}`).join(', ');
+                list.innerHTML += `
+                <div class="glass-card rounded-2xl p-4 fade-up" style="animation-delay: ${i*50}ms">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-black text-gray-900 bg-gray-100 px-2 py-1 rounded-md">Order #${order.id}</span>
+                        <span class="text-sm font-black text-primary">₹${order.total}</span>
+                    </div>
+                    <p class="text-sm font-bold text-gray-800 mb-2">${itemsStr}</p>
+                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">${order.paymentMethod === 'cash' ? 'Cash to pay' : 'Paid via UPI'}</span>
+                        <div class="flex items-center gap-2">
+                            ${order.status === 'pending' && !order.qr_scanned ? `<button onclick="showOrderQR('${order.id}')" class="text-[10px] font-bold bg-gray-900 text-white px-3 py-1 rounded-md flex items-center gap-1 active:scale-95 transition-all"><span class="material-symbols-outlined text-[14px]">qr_code</span> View QR</button>` : ''}
+                            ${order.qr_scanned ? `<span class="text-[10px] font-bold text-gray-400 border border-gray-200 px-2 py-1 rounded-md">QR Used</span>` : ''}
+                            <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md ${order.status === 'completed' ? 'bg-green-100 text-green-700' : order.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}">${order.status}</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function showOrderQR(orderId) {
+            const modal = document.getElementById('order-qr-modal');
+            const sheet = document.getElementById('order-qr-sheet');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            sheet.classList.remove('scale-95');
+            sheet.classList.add('scale-100');
+            document.getElementById('qr-order-id').innerText = orderId;
+
+            document.getElementById('order-qrcode').innerHTML = "";
+            new QRCode(document.getElementById('order-qrcode'), { 
+                text: JSON.stringify({ orderId: orderId, status: "pending" }), 
+                width: 180, 
+                height: 180,
+                colorDark : "#000000",
+                colorLight : "#ffffff"
+            });
+        }
+
+        function closeQRModal() {
+            const modal = document.getElementById('order-qr-modal');
+            const sheet = document.getElementById('order-qr-sheet');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            sheet.classList.remove('scale-100');
+            sheet.classList.add('scale-95');
+        }
+
+        window.onload = () => { fetchOrders(); setInterval(fetchOrders, 10000); };
+    </script>
+</body>
+</html>
