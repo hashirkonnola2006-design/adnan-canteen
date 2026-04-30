@@ -62,14 +62,16 @@
 
         async function fetchOrders() {
             try {
-                const res = await fetch('/api/orders');
-                if (res.ok) {
-                    const data = await res.json();
+                const localOrders = localStorage.getItem('canteenOrders');
+                if (localOrders) {
+                    const data = JSON.parse(localOrders);
                     const stId = localStorage.getItem('studentId');
                     allOrders = data.filter(o => o.studentId === stId);
-                    document.getElementById('loading').style.display = 'none';
-                    renderOrders();
+                } else {
+                    allOrders = [];
                 }
+                document.getElementById('loading').style.display = 'none';
+                renderOrders();
             } catch(e) { document.getElementById('loading').innerHTML = `<p class="text-xs text-red-500 font-bold">Failed to load orders.</p>`; }
         }
 

@@ -159,17 +159,40 @@
         }
 
         async function fetchOrders() {
-            try {
-                const res = await fetch('/api/orders');
-                if (res.ok) { allOrders = await res.json(); renderDashboard(); }
-            } catch (e) { console.error(e); }
+            // Load orders from localStorage
+            const localOrders = localStorage.getItem('canteenOrders');
+            if (localOrders) {
+                allOrders = JSON.parse(localOrders);
+            } else {
+                try {
+                    const res = await fetch('/api/orders');
+                    if (res.ok) { allOrders = await res.json(); }
+                } catch (e) { allOrders = []; }
+            }
+            renderDashboard();
         }
 
         async function fetchMenu() {
-            try {
-                const res = await fetch('/api/menu');
-                if (res.ok) { menuData = await res.json(); renderMenu(); }
-            } catch (e) { console.error(e); }
+            // Load menu from localStorage first, fallback to API defaults
+            const localMenu = localStorage.getItem('canteenMenu');
+            if (localMenu) {
+                menuData = JSON.parse(localMenu);
+            } else {
+                try {
+                    const res = await fetch('/api/menu');
+                    if (res.ok) { menuData = await res.json(); }
+                } catch (e) { menuData = []; }
+            }
+            saveMenuLocal();
+            renderMenu();
+        }
+
+        function saveMenuLocal() {
+            localStorage.setItem('canteenMenu', JSON.stringify(menuData));
+        }
+
+        function saveOrdersLocal() {
+            localStorage.setItem('canteenOrders', JSON.stringify(allOrders));
         }
 
         function renderDashboard() {
@@ -199,8 +222,13 @@
             }
         }
 
-        async function updateStatus(id, status) {
-            try { await fetch(`/api/orders/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); fetchOrders(); } catch (e) { console.error(e); }
+        function updateStatus(id, status) {
+            const idx = allOrders.findIndex(o => o.id === id || o.id === parseInt(id));
+            if (idx !== -1) {
+                allOrders[idx].status = status;
+                saveOrdersLocal();
+                renderDashboard();
+            }
         }
 
         function renderMenu() {
@@ -239,7 +267,7 @@
                 </div>`).join('');
         }
 
-        async function addMenu() {
+        function addMenu() {
             const name = document.getElementById('new-item-name').value;
             const price = document.getElementById('new-item-price').value;
             const category = document.getElementById('new-item-category').value;
@@ -248,27 +276,46 @@
             const encodedName = encodeURIComponent(name);
             const imgUrl = `https://image.pollinations.ai/prompt/a%20delicious%20plate%20of%20${encodedName}%20realistic%20food%20photography?width=400&height=400&nologo=true&seed=42`;
             
-            try {
-                await fetch('/api/menu', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, price, category, subtitle: category, img: imgUrl }) });
-                document.getElementById('new-item-name').value = ''; document.getElementById('new-item-price').value = ''; fetchMenu();
-            } catch (e) { console.error(e); }
+            const newItem = {
+                _id: 'item_' + Date.now(),
+                name: name,
+                subtitle: category,
+                price: parseInt(price),
+                img: imgUrl,
+                category: category,
+                available: true
+            };
+            menuData.push(newItem);
+            saveMenuLocal();
+            document.getElementById('new-item-name').value = '';
+            document.getElementById('new-item-price').value = '';
+            renderMenu();
         }
 
-        async function updatePrice(id) {
+        function updatePrice(id) {
             const price = document.getElementById(`price-${id}`).value;
-            try { await fetch(`/api/menu/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ price }) }); alert("Price Saved!"); } catch (e) { console.error(e); }
+            const idx = menuData.findIndex(m => m._id === id);
+            if (idx !== -1) {
+                menuData[idx].price = parseInt(price);
+                saveMenuLocal();
+                alert("Price Saved!");
+            }
         }
 
-        async function toggleAvailable(id, isAvailable) {
-            try { 
-                await fetch(`/api/menu/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ available: isAvailable }) }); 
-                fetchMenu(); 
-            } catch (e) { console.error(e); alert("Failed to update status"); }
+        function toggleAvailable(id, isAvailable) {
+            const idx = menuData.findIndex(m => m._id === id);
+            if (idx !== -1) {
+                menuData[idx].available = isAvailable;
+                saveMenuLocal();
+                renderMenu();
+            }
         }
 
-        async function deleteMenu(id) {
+        function deleteMenu(id) {
             if (!confirm('Delete this item?')) return;
-            try { await fetch(`/api/menu/${id}`, { method: 'DELETE' }); fetchMenu(); } catch (e) { console.error(e); }
+            menuData = menuData.filter(m => m._id !== id);
+            saveMenuLocal();
+            renderMenu();
         }
 
         function logout() { localStorage.removeItem('adminToken'); window.location.href = 'owner-login.html'; }

@@ -121,9 +121,19 @@
 
         async function fetchMenu() {
             try {
+                // Check localStorage first (synced by admin dashboard)
+                const localMenu = localStorage.getItem('canteenMenu');
+                if (localMenu) {
+                    menuData = JSON.parse(localMenu);
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    renderMenu();
+                    return;
+                }
+                // Fallback: load defaults from API
                 const res = await fetch('/api/menu');
                 if (res.ok) {
                     menuData = await res.json();
+                    localStorage.setItem('canteenMenu', JSON.stringify(menuData));
                     document.getElementById('loading-spinner').style.display = 'none';
                     renderMenu();
                 } else { throw new Error("Failed to load"); }

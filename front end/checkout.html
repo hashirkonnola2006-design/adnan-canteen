@@ -139,37 +139,35 @@
             const btn = document.getElementById('pay-btn');
             btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">autorenew</span> Processing`;
             try {
-                const res = await fetch('/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        items: cart,
-                        total: totalAmount,
-                        studentName: localStorage.getItem('studentName') || 'Student',
-                        studentId: localStorage.getItem('studentId') || '000',
-                        college: localStorage.getItem('selectedCollege') || 'College',
-                        paymentMethod: selectedMethod,
-                        status: 'pending'
-                    })
-                });
+                const orderId = Date.now();
+                const newOrder = {
+                    id: orderId,
+                    order_id: orderId,
+                    items: cart,
+                    total: totalAmount,
+                    studentName: localStorage.getItem('studentName') || 'Student',
+                    studentId: localStorage.getItem('studentId') || '000',
+                    college: localStorage.getItem('selectedCollege') || 'College',
+                    paymentMethod: selectedMethod,
+                    status: 'pending',
+                    date: new Date().toISOString(),
+                    qr_scanned: 0
+                };
 
-                if (res.ok) {
-                    const data = await res.json();
-                    const orderId = data.order_id;
-                    localStorage.removeItem('smartCanteenCart');
-                    if (selectedMethod === 'cash') {
-                        showOrderConfirmedModal(orderId);
-                        btn.innerHTML = `Place Order <span class="material-symbols-outlined text-sm">arrow_forward</span>`;
-                    } else {
-                        showUpiModal(orderId);
-                        btn.innerHTML = `Place Order <span class="material-symbols-outlined text-sm">arrow_forward</span>`;
-                    }
+                // Save to localStorage
+                const existingOrders = JSON.parse(localStorage.getItem('canteenOrders') || '[]');
+                existingOrders.push(newOrder);
+                localStorage.setItem('canteenOrders', JSON.stringify(existingOrders));
+
+                localStorage.removeItem('smartCanteenCart');
+                if (selectedMethod === 'cash') {
+                    showOrderConfirmedModal(orderId);
                 } else {
-                    alert("Order failed! Server returned an error.");
-                    btn.innerHTML = `Place Order <span class="material-symbols-outlined text-sm">arrow_forward</span>`;
+                    showUpiModal(orderId);
                 }
+                btn.innerHTML = `Place Order <span class="material-symbols-outlined text-sm">arrow_forward</span>`;
             } catch (err) { 
-                alert("Failed to place order. Is server running?"); 
+                alert("Failed to place order."); 
                 btn.innerHTML = `Place Order <span class="material-symbols-outlined text-sm">arrow_forward</span>`;
             }
         }
