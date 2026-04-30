@@ -62,7 +62,7 @@
 
         async function fetchOrders() {
             try {
-                const res = await fetch('http://localhost:5000/api/orders');
+                const res = await fetch('/api/orders');
                 if (res.ok) {
                     const data = await res.json();
                     const stId = localStorage.getItem('studentId');

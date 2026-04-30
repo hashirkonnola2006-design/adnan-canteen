@@ -122,7 +122,7 @@
 
         async function fetchSettings() {
             try {
-                const res = await fetch('http://localhost:5000/api/settings');
+                const res = await fetch('/api/settings');
                 if (res.ok) {
                     const data = await res.json();
                     if(data.canteen_name) document.getElementById('set-canteen-name').value = data.canteen_name;
@@ -142,7 +142,7 @@
                 owner_phone: document.getElementById('set-owner-phone').value
             };
             try {
-                await fetch('http://localhost:5000/api/settings', {
+                await fetch('/api/settings', {
                     method: 'POST', headers: {'Content-Type':'application/json'},
                     body: JSON.stringify(payload)
                 });
@@ -160,14 +160,14 @@
 
         async function fetchOrders() {
             try {
-                const res = await fetch('http://localhost:5000/api/orders');
+                const res = await fetch('/api/orders');
                 if (res.ok) { allOrders = await res.json(); renderDashboard(); }
             } catch (e) { console.error(e); }
         }
 
         async function fetchMenu() {
             try {
-                const res = await fetch('http://localhost:5000/api/menu');
+                const res = await fetch('/api/menu');
                 if (res.ok) { menuData = await res.json(); renderMenu(); }
             } catch (e) { console.error(e); }
         }
@@ -200,7 +200,7 @@
         }
 
         async function updateStatus(id, status) {
-            try { await fetch(`http://localhost:5000/api/orders/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); fetchOrders(); } catch (e) { console.error(e); }
+            try { await fetch(`/api/orders/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); fetchOrders(); } catch (e) { console.error(e); }
         }
 
         function renderMenu() {
@@ -249,26 +249,26 @@
             const imgUrl = `https://image.pollinations.ai/prompt/a%20delicious%20plate%20of%20${encodedName}%20realistic%20food%20photography?width=400&height=400&nologo=true&seed=42`;
             
             try {
-                await fetch('http://localhost:5000/api/menu', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, price, category, subtitle: category, img: imgUrl }) });
+                await fetch('/api/menu', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, price, category, subtitle: category, img: imgUrl }) });
                 document.getElementById('new-item-name').value = ''; document.getElementById('new-item-price').value = ''; fetchMenu();
             } catch (e) { console.error(e); }
         }
 
         async function updatePrice(id) {
             const price = document.getElementById(`price-${id}`).value;
-            try { await fetch(`http://localhost:5000/api/menu/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ price }) }); alert("Price Saved!"); } catch (e) { console.error(e); }
+            try { await fetch(`/api/menu/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ price }) }); alert("Price Saved!"); } catch (e) { console.error(e); }
         }
 
         async function toggleAvailable(id, isAvailable) {
             try { 
-                await fetch(`http://localhost:5000/api/menu/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ available: isAvailable }) }); 
+                await fetch(`/api/menu/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ available: isAvailable }) }); 
                 fetchMenu(); 
             } catch (e) { console.error(e); alert("Failed to update status"); }
         }
 
         async function deleteMenu(id) {
             if (!confirm('Delete this item?')) return;
-            try { await fetch(`http://localhost:5000/api/menu/${id}`, { method: 'DELETE' }); fetchMenu(); } catch (e) { console.error(e); }
+            try { await fetch(`/api/menu/${id}`, { method: 'DELETE' }); fetchMenu(); } catch (e) { console.error(e); }
         }
 
         function logout() { localStorage.removeItem('adminToken'); window.location.href = 'owner-login.html'; }

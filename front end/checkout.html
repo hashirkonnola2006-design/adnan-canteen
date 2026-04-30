@@ -112,7 +112,7 @@
 
         window.onload = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/settings');
+                const res = await fetch('/api/settings');
                 if (res.ok) {
                     const data = await res.json();
                     if (data.owner_upi) ownerUpi = data.owner_upi;
@@ -139,7 +139,7 @@
             const btn = document.getElementById('pay-btn');
             btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">autorenew</span> Processing`;
             try {
-                const res = await fetch('http://localhost:5000/api/orders', {
+                const res = await fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

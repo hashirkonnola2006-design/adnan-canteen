@@ -1,10 +1,9 @@
 {
-  "buildCommand": "",
-  "outputDirectory": "front end",
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+  "rewrites": [
+    { "source": "/api/menu", "destination": "/api/menu" },
+    { "source": "/api/orders", "destination": "/api/orders" },
+    { "source": "/api/auth/login", "destination": "/api/auth/login" },
+    { "source": "/api/settings", "destination": "/api/settings" }
+  ],
+  "outputDirectory": "front end"
 }
