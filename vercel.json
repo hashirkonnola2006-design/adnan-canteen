@@ -1,0 +1,10 @@
+{
+  "buildCommand": "",
+  "outputDirectory": "front end",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}
