@@ -39,7 +39,12 @@
         };
         function saveCollege() {
             localStorage.setItem('selectedCollege', document.getElementById('collegeSelect').value);
-            window.location.href = "welcome.html";
+            if (!localStorage.getItem('studentName')) {
+                localStorage.setItem('studentName', 'Student');
+                localStorage.setItem('studentId', '000');
+                localStorage.setItem('department', 'CS');
+            }
+            window.location.href = "menu.html";
         }
     </script>
 </body>

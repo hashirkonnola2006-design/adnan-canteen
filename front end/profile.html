@@ -28,12 +28,25 @@
         <main class="relative z-10 px-5 pt-24 pb-6 space-y-6">
             <div class="glass-card rounded-[2rem] p-6 shadow-sm flex flex-col items-center text-center">
                 <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-primary to-accent text-white flex items-center justify-center font-black text-2xl shadow-lg mb-4" id="avatar">ST</div>
-                <h2 class="text-xl font-black text-gray-900" id="name">Student Name</h2>
-                <p class="text-xs font-bold text-primary uppercase tracking-widest mt-1" id="college">College Name</p>
-                <div class="flex gap-4 mt-4 bg-white/50 px-4 py-2 rounded-xl">
-                    <div><p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">ID</p><p class="text-sm font-black text-gray-900" id="stid">000</p></div>
-                    <div class="w-px bg-gray-200"></div>
-                    <div><p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Dept</p><p class="text-sm font-black text-gray-900" id="dept">CS</p></div>
+                
+                <div class="w-full space-y-4 text-left">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Full Name</label>
+                        <input type="text" id="edit-name" class="w-full bg-white/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-primary" placeholder="Enter your name">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Student ID</label>
+                        <input type="text" id="edit-id" class="w-full bg-white/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. 12345">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Department/Class</label>
+                        <input type="text" id="edit-dept" class="w-full bg-white/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. CS">
+                    </div>
+                    
+                    <button onclick="saveProfile()" class="w-full bg-primary text-white font-black py-3 rounded-xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all uppercase text-xs tracking-widest mt-2">
+                        Save Profile
+                    </button>
+                    <p id="save-msg" class="text-xs font-bold text-success text-center opacity-0 transition-opacity">Profile saved successfully!</p>
                 </div>
             </div>
 
@@ -42,10 +55,6 @@
                     <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center"><span class="material-symbols-outlined">admin_panel_settings</span></div>
                     <span class="text-sm font-bold text-gray-900">Admin Login</span>
                 </a>
-                <button onclick="logout()" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 transition-colors text-red-500">
-                    <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center"><span class="material-symbols-outlined">logout</span></div>
-                    <span class="text-sm font-bold">Sign Out</span>
-                </button>
             </div>
         </main>
 
@@ -58,26 +67,38 @@
 
     <script>
         window.onload = () => {
-            const name = localStorage.getItem('studentName') || 'Student';
-            document.getElementById('name').innerText = name;
-            document.getElementById('avatar').innerText = name.substring(0, 2).toUpperCase();
-            let college = localStorage.getItem('selectedCollege') || 'COET Thalassery';
-            if (college === 'CoE Thalassery') college = 'COET Thalassery';
-            document.getElementById('college').innerText = college;
-            document.getElementById('stid').innerText = localStorage.getItem('studentId') || '-';
-            document.getElementById('dept').innerText = localStorage.getItem('department') || '-';
+            const name = localStorage.getItem('studentName') || '';
+            const stId = localStorage.getItem('studentId') || '';
+            const dept = localStorage.getItem('department') || '';
+            
+            document.getElementById('edit-name').value = name === 'Student' ? '' : name;
+            document.getElementById('edit-id').value = stId === '000' ? '' : stId;
+            document.getElementById('edit-dept').value = dept === 'CS' ? '' : dept;
+            
+            updateAvatar(name || 'ST');
         };
-        function logout() {
-            const college = localStorage.getItem('selectedCollege');
-            const cart = localStorage.getItem('smartCanteenCart');
-            const isGuest = localStorage.getItem('studentId') && localStorage.getItem('studentId').startsWith('GUEST_');
-            
-            localStorage.clear();
-            
-            if (college) localStorage.setItem('selectedCollege', college);
-            if (!isGuest && cart) localStorage.setItem('smartCanteenCart', cart);
-            
-            window.location.href = "index.html";
+
+        function updateAvatar(name) {
+            const displayStr = name ? name.substring(0, 2).toUpperCase() : 'ST';
+            document.getElementById('avatar').innerText = displayStr;
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('edit-name').value || 'Student';
+            const stId = document.getElementById('edit-id').value || '000';
+            const dept = document.getElementById('edit-dept').value || 'CS';
+
+            localStorage.setItem('studentName', name);
+            localStorage.setItem('studentId', stId);
+            localStorage.setItem('department', dept);
+
+            updateAvatar(name);
+
+            const msg = document.getElementById('save-msg');
+            msg.classList.remove('opacity-0');
+            setTimeout(() => {
+                msg.classList.add('opacity-0');
+            }, 2000);
         }
     </script>
 </body>
