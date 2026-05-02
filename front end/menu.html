@@ -203,7 +203,6 @@
         let currentCategory = 'All';
 
         function initFirebaseAndFetchMenu() {
-            firebase.initializeApp(window.FIREBASE_CONFIG);
             const db = firebase.database();
             // Realtime listener - auto-updates when admin changes menu
             db.ref('menu').on('value', snapshot => {
