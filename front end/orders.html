@@ -86,6 +86,11 @@
             justify-content: center;
             gap: 4px;
             -webkit-tap-highlight-color: transparent;
+            transition: transform 0.1s ease;
+        }
+
+        .nav-item:active {
+            transform: scale(0.9);
         }
 
         .tab-btn {
@@ -184,9 +189,10 @@
                 return;
             }
 
+            let html = '';
             filtered.forEach((order, i) => {
                 const itemsStr = Object.values(order.items || {}).map(d => `${d.qty}x ${d.name}`).join(', ');
-                list.innerHTML += `
+                html += `
                 <div class="glass-card rounded-[2rem] p-5 fade-up" style="animation-delay: ${i*50}ms">
                     <div class="flex justify-between items-center mb-4">
                         <span class="text-[10px] font-black text-gray-500 bg-gray-50 border border-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">#${order.id}</span>
@@ -204,6 +210,7 @@
                     </div>
                 </div>`;
             });
+            list.innerHTML = html;
         }
 
         function showOrderQR(orderId) {
@@ -232,7 +239,7 @@
             sheet.classList.add('scale-95');
         }
 
-        window.onload = () => { fetchOrders(); setInterval(fetchOrders, 10000); };
+        window.onload = () => { fetchOrders(); };
     </script>
 </body>
 </html>
