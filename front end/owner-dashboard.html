@@ -243,6 +243,11 @@
             document.getElementById('menu-list').innerHTML = sortedMenu.map(item => `
                 <div class="bg-white border ${item.available ? 'border-gray-200' : 'border-red-200 bg-red-50/30'} rounded-2xl p-4 flex flex-col gap-3 shadow-sm transition-all relative overflow-hidden">
                     ${!item.available ? '<div class="absolute -right-6 top-3 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-8 py-0.5 rotate-45 shadow-sm z-10">Sold Out</div>' : ''}
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-6">
+                            <h4 class="font-bold text-gray-900 text-sm leading-tight">${item.name}</h4>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">${item.category}</div>
+                        </div>
                         <div class="flex items-center gap-2">
                             <button onclick="editMenu('${item._id}')" class="text-gray-400 hover:text-primary active:scale-90 transition-all"><span class="material-symbols-outlined text-[18px]">edit</span></button>
                             <button onclick="deleteMenu('${item._id}')" class="text-gray-400 hover:text-red-500 active:scale-90 transition-all"><span class="material-symbols-outlined text-[18px]">delete</span></button>
