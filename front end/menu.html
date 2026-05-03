@@ -251,7 +251,6 @@
         let menuData = [];
         let cart = {};
         let currentCategory = 'All';
-        let appSettings = { show_images: true };
 
         function handleImageError(img, category) {
             const container = img.parentElement;
@@ -311,11 +310,10 @@
                 document.getElementById('loading-spinner').innerHTML = `<span class="text-xs text-red-500 font-bold">Failed to load menu. Check console for details.</span>`;
             });
 
-            // Listen for global settings (Show/Hide Images)
-            db.ref('settings').on('value', snap => {
+            // Fetch Settings
+            firebase.database().ref('settings').on('value', snap => {
                 const settings = snap.val();
                 if (settings) {
-                    appSettings = { ...appSettings, ...settings };
                     renderMenu();
                 }
             });
@@ -344,7 +342,7 @@
                     ${!available ? '<div class="absolute top-8 -right-8 bg-black text-white text-[8px] font-black uppercase tracking-[0.2em] px-10 py-1 rotate-45 shadow-lg z-20">Sold Out</div>' : ''}
                     <div class="aspect-square rounded-2xl bg-gray-50 mb-4 overflow-hidden relative shadow-inner flex items-center justify-center">
                         ${!available ? '<div class="absolute inset-0 bg-white/20 z-10 backdrop-blur-[1px]"></div>' : ''}
-                        ${appSettings.show_images ? 
+                        ${item.showImage !== false ? 
                             `<img src="${item.img || 'https://via.placeholder.com/400'}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" alt="${item.name || 'item'}" loading="lazy" onerror="handleImageError(this, '${item.category}')"/>` :
                             `<div class="flex flex-col items-center justify-center gap-2 opacity-60">
                                 <span class="material-symbols-outlined text-5xl text-gray-300">${item.category === 'Drinks' ? 'local_drink' : (item.category === 'Snacks' ? 'bakery_dining' : 'restaurant')}</span>
