@@ -8,8 +8,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <script>
         tailwind.config = { theme: { extend: { colors: { "primary": "#9f4122", "background": "#fff5f2", "accent": "#ff8a65", "teal": "#00bfae" } } } }
     </script>
@@ -138,7 +137,7 @@
 
             <div class="relative mb-4">
                 <span
-                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10 pointer-events-none">search</span>
                 <input type="text" id="searchInput" placeholder="Search food..."
                     class="w-full bg-gray-100 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                     oninput="filterMenu()">
@@ -203,6 +202,7 @@
         let currentCategory = 'All';
 
         function initFirebaseAndFetchMenu() {
+            console.log("Firebase connection process starting...");
             if (typeof firebase === "undefined" || !firebase.database) {
                 console.error("Firebase SDK not loaded. Menu cannot be fetched.");
                 document.getElementById('loading-spinner').innerHTML = `<span class="text-xs text-red-500 font-bold">Firebase not available.</span>`;
@@ -212,16 +212,19 @@
             // Realtime listener - auto-updates when admin changes menu
             db.ref('menu').on('value', snapshot => {
                 const data = snapshot.val();
+                console.log("Firebase snapshot received:", data);
                 if (data) {
                     menuData = Object.keys(data).map(key => ({ _id: key, ...data[key] }));
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    renderMenu();
                 } else {
+                    console.warn("Snapshot is empty or null.");
                     menuData = [];
+                    document.getElementById('loading-spinner').innerHTML = `<span class="text-xs text-orange-500 font-bold">Menu unavailable - please try again later</span>`;
                 }
-                document.getElementById('loading-spinner').style.display = 'none';
-                renderMenu();
             }, err => {
-                console.error(err);
-                document.getElementById('loading-spinner').innerHTML = `<span class="text-xs text-red-500 font-bold">Failed to load menu.</span>`;
+                console.error("Firebase fetch error:", err);
+                document.getElementById('loading-spinner').innerHTML = `<span class="text-xs text-red-500 font-bold">Failed to load menu. Check console for details.</span>`;
             });
         }
 

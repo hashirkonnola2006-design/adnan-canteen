@@ -16,6 +16,10 @@ if (typeof firebase !== "undefined" && firebase.initializeApp) {
   if (!firebase.apps || firebase.apps.length === 0) {
     firebase.initializeApp(firebaseConfig);
   }
+  // Connectivity test
+  firebase.database().ref('.info/connected').on('value', function(snap) {
+    console.log('Firebase connected:', snap.val());
+  });
 } else {
   console.error("Firebase SDK not loaded. Ensure firebase-app.js script is included before firebase-config.js.");
 }
