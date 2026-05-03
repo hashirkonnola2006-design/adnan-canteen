@@ -84,8 +84,9 @@
                         </div>
                     </div>
                     <div id="menu-list" class="space-y-4"></div>
-                    <div class="mt-8 pt-6 border-t border-gray-100 text-center">
-                        <button onclick="syncLegacyData()" class="text-[10px] font-black text-primary uppercase tracking-[0.2em] opacity-60 hover:opacity-100 transition-all flex items-center justify-center gap-2 mx-auto">
+                    <div id="sync-container" class="hidden mt-8 pt-6 border-t border-gray-100 text-center">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Legacy local data detected</p>
+                        <button onclick="syncLegacyData()" class="text-[10px] font-black text-primary uppercase tracking-[0.2em] opacity-80 hover:opacity-100 transition-all flex items-center justify-center gap-2 mx-auto">
                             <span class="material-symbols-outlined text-sm">sync</span> Sync Legacy Local Items
                         </button>
                     </div>
@@ -270,6 +271,13 @@
                         </label>
                     </div>
                 </div>`).join('');
+            
+            // Show/Hide sync container based on localStorage existence
+            const syncBtn = document.getElementById('sync-container');
+            if (syncBtn) {
+                if (localStorage.getItem('canteenMenu')) syncBtn.classList.remove('hidden');
+                else syncBtn.classList.add('hidden');
+            }
         }
 
         function editMenu(id) {
@@ -388,7 +396,16 @@
                 });
                 count++;
             }
-            alert(`Synced ${count} items! (Skipped ${skipped} existing items)`);
+            
+            if (count > 0) {
+                localStorage.removeItem('canteenMenu');
+                alert(`Successfully synced ${count} items! Your local storage has been cleared.`);
+                renderMenu(); // Hide the button
+            } else {
+                alert(`No new items to sync. (Skipped ${skipped} items that already exist in cloud)`);
+                localStorage.removeItem('canteenMenu');
+                renderMenu();
+            }
         }
 
         async function updatePrice(id) {
