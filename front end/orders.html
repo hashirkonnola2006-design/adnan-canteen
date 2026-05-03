@@ -11,6 +11,9 @@
     <script>
         tailwind.config = { theme: { extend: { colors: { "primary": "#9f4122", "background": "#fff5f2", "accent": "#ff8a65", "teal": "#00bfae" } } } }
     </script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="./firebase-config.js"></script>
     <style>
         :root {
             --primary: #9f4122;
@@ -144,18 +147,24 @@
         let currentTab = 'pending';
 
         async function fetchOrders() {
-            try {
-                const localOrders = localStorage.getItem('canteenOrders');
-                if (localOrders) {
-                    const data = JSON.parse(localOrders);
-                    const stId = localStorage.getItem('studentId');
-                    allOrders = data.filter(o => o.studentId === stId);
+            if (typeof firebase === "undefined" || !firebase.database) return;
+            const stId = localStorage.getItem('studentId');
+            
+            firebase.database().ref('orders').on('value', snap => {
+                const data = snap.val();
+                if (data) {
+                    // Filter orders belonging to this student
+                    allOrders = Object.keys(data)
+                        .map(key => ({ _id: key, ...data[key] }))
+                        .filter(o => o.studentId === stId);
                 } else {
                     allOrders = [];
                 }
                 document.getElementById('loading').style.display = 'none';
                 renderOrders();
-            } catch(e) { document.getElementById('loading').innerHTML = `<p class="text-xs text-red-500 font-bold">Failed to load orders.</p>`; }
+            }, err => {
+                document.getElementById('loading').innerHTML = `<p class="text-xs text-red-500 font-bold">Connection failed.</p>`;
+            });
         }
 
         function setTab(tab) {

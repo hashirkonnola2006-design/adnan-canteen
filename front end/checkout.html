@@ -11,6 +11,9 @@
     <script>
         tailwind.config = { theme: { extend: { colors: { "primary": "#9f4122", "background": "#fff5f2", "accent": "#ff8a65", "teal": "#00bfae", "success": "#10b981" } } } }
     </script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="./firebase-config.js"></script>
     <style>
         :root {
             --primary: #9f4122;
@@ -175,13 +178,12 @@
         }
 
         window.onload = async () => {
-            try {
-                const res = await fetch('/api/settings');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.owner_upi) ownerUpi = data.owner_upi;
-                }
-            } catch (e) {}
+            if (typeof firebase !== "undefined" && firebase.database) {
+                firebase.database().ref('settings').once('value', snap => {
+                    const data = snap.val();
+                    if (data && data.owner_upi) ownerUpi = data.owner_upi;
+                });
+            }
 
             const savedCart = localStorage.getItem('smartCanteenCart');
             if (savedCart) {
@@ -209,7 +211,7 @@
                     order_id: orderId,
                     items: cart,
                     total: totalAmount,
-                    studentName: localStorage.getItem('studentName') || 'Student',
+                    studentName: localStorage.getItem('guestName') || 'Guest',
                     studentId: localStorage.getItem('studentId') || '000',
                     college: localStorage.getItem('selectedCollege') || 'College',
                     paymentMethod: selectedMethod,
@@ -218,7 +220,10 @@
                     qr_scanned: 0
                 };
 
-                // Save to localStorage
+                // Push to Firebase
+                await firebase.database().ref('orders/' + orderId).set(newOrder);
+
+                // Save reference locally for the student to see their own history
                 const existingOrders = JSON.parse(localStorage.getItem('canteenOrders') || '[]');
                 existingOrders.push(newOrder);
                 localStorage.setItem('canteenOrders', JSON.stringify(existingOrders));
@@ -231,7 +236,7 @@
                 }
                 btn.innerHTML = `Place Order <span class="material-symbols-outlined text-sm">arrow_forward</span>`;
             } catch (err) { 
-                alert("Failed to place order."); 
+                alert("Failed to place order: " + err.message); 
                 btn.innerHTML = `Place Order <span class="material-symbols-outlined text-sm">arrow_forward</span>`;
             }
         }

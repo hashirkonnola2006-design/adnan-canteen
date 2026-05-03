@@ -163,17 +163,16 @@
         }
 
         async function fetchOrders() {
-            // Load orders from localStorage
-            const localOrders = localStorage.getItem('canteenOrders');
-            if (localOrders) {
-                allOrders = JSON.parse(localOrders);
-            } else {
-                try {
-                    const res = await fetch('/api/orders');
-                    if (res.ok) { allOrders = await res.json(); }
-                } catch (e) { allOrders = []; }
-            }
-            renderDashboard();
+            if (typeof firebase === "undefined" || !firebase.database) return;
+            firebase.database().ref('orders').on('value', snap => {
+                const data = snap.val();
+                if (data) {
+                    allOrders = Object.keys(data).map(key => ({ _id: key, ...data[key] }));
+                } else {
+                    allOrders = [];
+                }
+                renderDashboard();
+            });
         }
 
         async function fetchMenu() {
@@ -224,13 +223,10 @@
             }
         }
 
-        function updateStatus(id, status) {
-            const idx = allOrders.findIndex(o => o.id === id || o.id === parseInt(id));
-            if (idx !== -1) {
-                allOrders[idx].status = status;
-                saveOrdersLocal();
-                renderDashboard();
-            }
+        async function updateStatus(id, status) {
+            try {
+                await firebase.database().ref('orders/' + id).update({ status: status });
+            } catch(e) { alert("Failed to update status: " + e.message); }
         }
 
         function renderMenu() {
