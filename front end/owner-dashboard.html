@@ -75,7 +75,6 @@
                                     <option value="Meals">Meals</option><option value="Snacks">Snacks</option><option value="Drinks">Drinks</option>
                                 </select>
                             </div>
-                            <input type="text" id="new-item-ai-hint" placeholder="AI Image Hint (e.g., Malabar style, with egg)" class="w-full px-4 py-3 text-[10px] font-bold border border-gray-200 focus:ring-2 focus:ring-primary rounded-xl bg-white text-gray-400 outline-none">
                             <button onclick="saveItem()" id="save-btn" class="w-full bg-gray-900 hover:bg-black text-white rounded-xl py-3 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md mt-1">
                                 <span class="material-symbols-outlined text-lg" id="save-btn-icon">add_circle</span> <span id="save-btn-text">Add Item to Menu</span>
                             </button>
@@ -304,10 +303,9 @@
             const name = document.getElementById('new-item-name').value;
             const price = document.getElementById('new-item-price').value;
             const category = document.getElementById('new-item-category').value;
-            const aiHint = document.getElementById('new-item-ai-hint').value;
             if (!name || !price) return alert("Fill all fields");
 
-            const encodedName = encodeURIComponent(name + (aiHint ? " " + aiHint : ""));
+            const encodedName = encodeURIComponent(name);
             const seed = Math.floor(Math.random() * 1000);
             // Enhanced prompt with regional context for better accuracy
             const imgUrl = `https://image.pollinations.ai/prompt/delicious%20kerala%20style%20${encodedName}%20traditional%20south%20indian%20food%20photography%20highly%20detailed%20studio%20lighting?width=400&height=400&nologo=true&seed=${seed}`;
@@ -324,7 +322,6 @@
             menuData.push(newItem);
             document.getElementById('new-item-name').value = '';
             document.getElementById('new-item-price').value = '';
-            document.getElementById('new-item-ai-hint').value = '';
             renderMenu();
         }
 
