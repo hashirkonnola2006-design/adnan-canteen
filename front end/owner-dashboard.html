@@ -84,16 +84,11 @@
                         </div>
                     </div>
                     <div id="menu-list" class="space-y-4"></div>
-                    <div id="sync-container" class="hidden mt-8 pt-6 border-t border-gray-100 text-center">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Legacy local data detected</p>
-                        <div class="flex flex-col gap-2">
-                            <button onclick="syncLegacyData()" class="text-[10px] font-black text-primary bg-primary/5 py-3 rounded-xl uppercase tracking-[0.2em] hover:bg-primary/10 transition-all flex items-center justify-center gap-2 mx-auto px-6">
-                                <span class="material-symbols-outlined text-sm">sync</span> Sync to Cloud
-                            </button>
-                            <button onclick="clearLegacyData()" class="text-[9px] font-bold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-[0.1em]">
-                                Forget Legacy Data
-                            </button>
-                        </div>
+                    <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+                        <button onclick="saveAllMenuChanges()" id="batch-save-btn" class="w-full bg-primary hover:bg-accent text-white rounded-xl py-4 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg">
+                            <span class="material-symbols-outlined text-lg">cloud_upload</span> Save All Changes to Website
+                        </button>
+                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-3">Changes only go live after clicking save</p>
                     </div>
                 </div>
             </div>
@@ -187,7 +182,8 @@
 
         async function fetchMenu() {
             if (typeof firebase === "undefined" || !firebase.database) return;
-            firebase.database().ref('menu').on('value', snap => {
+            // Use once() for batch edit mode - don't auto-update while editing
+            firebase.database().ref('menu').once('value', snap => {
                 const data = snap.val();
                 if (data) {
                     menuData = Object.keys(data).map(key => ({ _id: key, ...data[key] }));
@@ -261,12 +257,7 @@
                     </div>
                     
                     <div class="flex items-center justify-between mt-1 pt-3 border-t ${item.available ? 'border-gray-100' : 'border-red-100'}">
-                        <div class="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-1">
-                            <span class="text-xs font-black text-gray-500 pl-2">₹</span>
-                            <input type="number" id="price-${item._id}" value="${item.price}" class="w-12 px-1 py-1 text-sm font-black text-gray-900 bg-transparent border-0 focus:ring-0 outline-none text-center">
-                            <button onclick="updatePrice('${item._id}')" class="bg-primary text-white rounded-md px-2 py-1 text-[9px] font-bold uppercase tracking-widest shadow-sm active:scale-95">Save</button>
-                        </div>
-                        
+                        <span class="text-xs font-black text-gray-500">₹${item.price}</span>
                         <label class="flex items-center gap-2 cursor-pointer">
                             <span class="text-[10px] font-bold uppercase tracking-widest ${item.available ? 'text-success' : 'text-red-500'}">${item.available ? 'In Stock' : 'Over'}</span>
                             <div class="relative">
@@ -276,13 +267,6 @@
                         </label>
                     </div>
                 </div>`).join('');
-            
-            // Show/Hide sync container based on localStorage existence
-            const syncBtn = document.getElementById('sync-container');
-            if (syncBtn) {
-                if (localStorage.getItem('canteenMenu')) syncBtn.classList.remove('hidden');
-                else syncBtn.classList.add('hidden');
-            }
         }
 
         function editMenu(id) {
@@ -313,7 +297,7 @@
             document.getElementById('cancel-edit-btn').classList.add('hidden');
         }
 
-        async function saveItem() {
+        function saveItem() {
             if (editingId) return updateMenu();
             
             const name = document.getElementById('new-item-name').value;
@@ -321,119 +305,76 @@
             const category = document.getElementById('new-item-category').value;
             if (!name || !price) return alert("Fill all fields");
 
-            // Check for duplicate
-            const existing = menuData.find(i => i.name.toLowerCase() === name.toLowerCase());
-            if (existing) {
-                if (!confirm(`An item with the name "${name}" already exists. Do you want to overwrite it?`)) return;
-            }
-
-            const id = existing ? existing._id : 'item_' + Date.now();
-            
-            // Optimized AI Image Generation (only if new or if they want to regenerate)
-            let imgUrl = existing ? existing.img : null;
-            if (!imgUrl) {
-                const encodedName = encodeURIComponent(name);
-                const seed = Math.floor(Math.random() * 1000);
-                imgUrl = `https://image.pollinations.ai/prompt/delicious%20${encodedName}%20food%20photography%20studio%20light%20white%20background%20highly%20detailed?width=300&height=300&nologo=true&seed=${seed}`;
-            }
+            const encodedName = encodeURIComponent(name);
+            const seed = Math.floor(Math.random() * 1000);
+            const imgUrl = `https://image.pollinations.ai/prompt/delicious%20${encodedName}%20food%20photography%20studio%20light%20white%20background?width=300&height=300&nologo=true&seed=${seed}`;
             
             const newItem = {
+                _id: 'item_' + Date.now(),
                 name: name,
                 price: parseInt(price),
                 img: imgUrl,
                 category: category,
-                available: existing ? (existing.available !== false) : true
+                available: true
             };
             
-            try {
-                await firebase.database().ref('menu/' + id).set(newItem);
-                document.getElementById('new-item-name').value = '';
-                document.getElementById('new-item-price').value = '';
-                alert(existing ? "Item Overwritten!" : "Item Added!");
-            } catch(e) { alert("Error: " + e.message); }
-        }
-
-        async function updateMenu() {
-            const name = document.getElementById('new-item-name').value;
-            const price = document.getElementById('new-item-price').value;
-            const category = document.getElementById('new-item-category').value;
-            if (!name || !price) return alert("Fill all fields");
-
-            try {
-                await firebase.database().ref('menu/' + editingId).update({
-                    name: name,
-                    price: parseInt(price),
-                    category: category
-                });
-                alert("Item Updated!");
-                cancelEdit();
-            } catch(e) { alert("Error: " + e.message); }
-        }
-
-        async function syncLegacyData() {
-            const localMenu = localStorage.getItem('canteenMenu');
-            if (!localMenu) return;
-            
-            const items = JSON.parse(localMenu);
-            if (!confirm(`Found ${items.length} items from your old local storage. Do you want to sync them to the cloud? Items already in the cloud will be skipped.`)) return;
-
-            let count = 0;
-            let skipped = 0;
-            for (const item of items) {
-                const exists = menuData.find(i => i.name.toLowerCase() === item.name.toLowerCase());
-                if (exists) {
-                    skipped++;
-                    continue;
-                }
-
-                const id = 'item_' + (Date.now() + count);
-                const encodedName = encodeURIComponent(item.name);
-                const seed = Math.floor(Math.random() * 1000);
-                const aiImg = `https://image.pollinations.ai/prompt/delicious%20${encodedName}%20food%20photography?width=300&height=300&nologo=true&seed=${seed}`;
-                
-                await firebase.database().ref('menu/' + id).set({
-                    name: item.name,
-                    price: item.price,
-                    category: item.category || 'General',
-                    img: item.img || aiImg,
-                    available: item.available !== false
-                });
-                count++;
-            }
-            
-            localStorage.removeItem('canteenMenu');
-            alert(`Sync complete! ${count} items added, ${skipped} items skipped (already in cloud). Local legacy data cleared.`);
+            menuData.push(newItem);
+            document.getElementById('new-item-name').value = '';
+            document.getElementById('new-item-price').value = '';
             renderMenu();
         }
 
-        function clearLegacyData() {
-            if (confirm("Are you sure? This will permanently forget your old local data. Use this if you have already set up your menu in the cloud.")) {
-                localStorage.removeItem('canteenMenu');
-                renderMenu();
-                alert("Legacy data forgotten.");
+        function updateMenu() {
+            const name = document.getElementById('new-item-name').value;
+            const price = document.getElementById('new-item-price').value;
+            const category = document.getElementById('new-item-category').value;
+            
+            const idx = menuData.findIndex(i => i._id === editingId);
+            if (idx !== -1) {
+                menuData[idx].name = name;
+                menuData[idx].price = parseInt(price);
+                menuData[idx].category = category;
             }
+            cancelEdit();
+            renderMenu();
         }
 
-        async function updatePrice(id) {
-            const price = document.getElementById(`price-${id}`).value;
-            try {
-                await firebase.database().ref('menu/' + id).update({ price: parseInt(price) });
-                alert("Price Saved!");
-            } catch(e) { alert("Error updating price: " + e.message); }
+        function updatePriceLocal(id, val) {
+            const idx = menuData.findIndex(i => i._id === id);
+            if (idx !== -1) menuData[idx].price = parseInt(val);
         }
 
-        async function toggleAvailable(id, isAvailable) {
-            try {
-                await firebase.database().ref('menu/' + id).update({ available: isAvailable });
-            } catch(e) { alert("Error updating status: " + e.message); }
+        function toggleAvailableLocal(id, val) {
+            const idx = menuData.findIndex(i => i._id === id);
+            if (idx !== -1) menuData[idx].available = val;
+            renderMenu();
         }
 
-        async function deleteMenu(id) {
-            if (!confirm('Delete this item?')) return;
+        function deleteMenu(id) {
+            if (!confirm('Remove this item from list?')) return;
+            menuData = menuData.filter(i => i._id !== id);
+            renderMenu();
+        }
+
+        async function saveAllMenuChanges() {
+            const btn = document.getElementById('batch-save-btn');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">autorenew</span> Saving to Website...`;
+            
+            // Convert array back to object for Firebase
+            const firebaseData = {};
+            menuData.forEach(item => {
+                const { _id, ...rest } = item;
+                firebaseData[_id] = rest;
+            });
+
             try {
-                await firebase.database().ref('menu/' + id).remove();
-                alert("Item Deleted!");
-            } catch(e) { alert("Error deleting item: " + e.message); }
+                await firebase.database().ref('menu').set(firebaseData);
+                alert("Website Updated Successfully! All changes are now live.");
+            } catch(e) { 
+                alert("Error saving: " + e.message); 
+            }
+            btn.innerHTML = ogText;
         }
 
         function logout() { localStorage.removeItem('adminToken'); window.location.href = 'owner-login.html'; }
