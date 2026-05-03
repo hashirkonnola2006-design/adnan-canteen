@@ -76,15 +76,16 @@
 
     <script>
         window.onload = () => {
-            const name = localStorage.getItem('studentName') || '';
+            const name = localStorage.getItem('guestName') || '';
             const stId = localStorage.getItem('studentId') || '';
             const dept = localStorage.getItem('department') || '';
+            const college = localStorage.getItem('selectedCollege') || 'COET Thalassery';
             
-            document.getElementById('edit-name').value = name === 'Student' ? '' : name;
+            document.getElementById('edit-name').value = name === 'Guest' ? '' : name;
             document.getElementById('edit-id').value = stId === '000' ? '' : stId;
             document.getElementById('edit-dept').value = dept === 'CS' ? '' : dept;
             
-            updateAvatar(name || 'ST');
+            updateAvatar(name || 'GU');
         };
 
         function updateAvatar(name) {
@@ -93,11 +94,11 @@
         }
 
         function saveProfile() {
-            const name = document.getElementById('edit-name').value || 'Student';
+            const name = document.getElementById('edit-name').value || 'Guest';
             const stId = document.getElementById('edit-id').value || '000';
             const dept = document.getElementById('edit-dept').value || 'CS';
 
-            localStorage.setItem('studentName', name);
+            localStorage.setItem('guestName', name);
             localStorage.setItem('studentId', stId);
             localStorage.setItem('department', dept);
 

@@ -216,9 +216,17 @@
                 const data = snapshot.val();
                 console.log("Firebase snapshot received:", data);
                 if (data) {
-                    menuData = Object.keys(data).map(key => ({ _id: key, ...data[key] }));
-                    document.getElementById('loading-spinner').style.display = 'none';
-                    renderMenu();
+                    menuData = Object.keys(data)
+                        .filter(key => data[key] && typeof data[key] === 'object')
+                        .map(key => ({ _id: key, ...data[key] }));
+                    
+                    if (menuData.length > 0) {
+                        document.getElementById('loading-spinner').style.display = 'none';
+                        renderMenu();
+                    } else {
+                        console.warn("No valid menu items found in snapshot.");
+                        document.getElementById('loading-spinner').innerHTML = `<span class="text-xs text-orange-500 font-bold uppercase tracking-widest">Menu unavailable - please try again later</span>`;
+                    }
                 } else {
                     console.warn("Snapshot is empty or null.");
                     menuData = [];
@@ -253,12 +261,12 @@
                     ${!available ? '<div class="absolute top-10 -right-8 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest px-10 py-1 rotate-45 shadow-lg z-20 shadow-red-900/20">Sold Out</div>' : ''}
                     <div class="aspect-square rounded-xl bg-gray-100 mb-3 overflow-hidden relative">
                         ${!available ? '<div class="absolute inset-0 bg-black/40 z-10 flex items-center justify-center backdrop-blur-[2px]"><span class="text-white font-black tracking-widest uppercase text-xs border-2 border-white px-2 py-1 rounded">Finished</span></div>' : ''}
-                        <img src="${item.img}" class="w-full h-full object-cover" alt="${item.name}" loading="lazy"/>
+                        <img src="${item.img || 'https://via.placeholder.com/400'}" class="w-full h-full object-cover" alt="${item.name || 'item'}" loading="lazy"/>
                     </div>
                     <div class="flex-1">
-                        <div class="text-[9px] font-bold text-primary uppercase tracking-widest mb-1">${item.category}</div>
-                        <h3 class="font-bold text-sm text-gray-900 leading-tight mb-1 ${!available ? 'line-through decoration-red-500/50' : ''}">${item.name}</h3>
-                        <p class="text-lg font-black text-gray-900">₹${item.price}</p>
+                        <div class="text-[9px] font-bold text-primary uppercase tracking-widest mb-1">${item.category || 'Other'}</div>
+                        <h3 class="font-bold text-sm text-gray-900 leading-tight mb-1 ${!available ? 'line-through decoration-red-500/50' : ''}">${item.name || 'Unnamed Item'}</h3>
+                        <p class="text-lg font-black text-gray-900">₹${item.price || 0}</p>
                     </div>
                     <div class="mt-3">
                         ${!available ?
@@ -276,7 +284,12 @@
             });
 
             if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-2 text-center py-10 text-gray-500 font-bold text-sm">No items found.</div>`;
+                grid.innerHTML = `
+                <div class="col-span-2 flex flex-col items-center justify-center py-12 text-center">
+                    <span class="material-symbols-outlined text-5xl text-gray-200 mb-3">search_off</span>
+                    <p class="text-sm font-bold text-gray-500">No items found</p>
+                    <p class="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-1">Try a different category or search term</p>
+                </div>`;
             }
         }
 

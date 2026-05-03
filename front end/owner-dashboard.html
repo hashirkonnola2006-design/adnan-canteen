@@ -10,6 +10,9 @@
     <script>
         tailwind.config = { theme: { extend: { colors: { "primary": "#9f4122", "background": "#fff5f2", "accent": "#ff8a65", "teal": "#00bfae", "success": "#10b981", "warning": "#f59e0b", "error": "#ef4444" } } } }
     </script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="./firebase-config.js"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f4f6; scroll-behavior: smooth; margin: 0; height: 100vh; overflow: hidden; display: flex; justify-content: center; }
         .mobile-container { width: 100%; max-width: 414px; height: 100vh; background-color: #fff5f2; position: relative; overflow-x: hidden; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding-bottom: 100px; }
@@ -121,15 +124,15 @@
         }
 
         async function fetchSettings() {
-            try {
-                const res = await fetch('/api/settings');
-                if (res.ok) {
-                    const data = await res.json();
+            if (typeof firebase === "undefined" || !firebase.database) return;
+            firebase.database().ref('settings').on('value', snap => {
+                const data = snap.val();
+                if (data) {
                     if(data.canteen_name) document.getElementById('set-canteen-name').value = data.canteen_name;
                     if(data.owner_upi) document.getElementById('set-owner-upi').value = data.owner_upi;
                     if(data.owner_phone) document.getElementById('set-owner-phone').value = data.owner_phone;
                 }
-            } catch(e) {}
+            });
         }
 
         async function saveSettings(e) {
@@ -142,12 +145,9 @@
                 owner_phone: document.getElementById('set-owner-phone').value
             };
             try {
-                await fetch('/api/settings', {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify(payload)
-                });
-                alert("Settings saved!");
-            } catch(e) { alert("Failed to save"); }
+                await firebase.database().ref('settings').set(payload);
+                alert("Settings Updated!");
+            } catch(e) { alert("Failed to save: " + e.message); }
             btn.innerHTML = ogText;
         }
 
@@ -173,18 +173,16 @@
         }
 
         async function fetchMenu() {
-            // Load menu from localStorage first, fallback to API defaults
-            const localMenu = localStorage.getItem('canteenMenu');
-            if (localMenu) {
-                menuData = JSON.parse(localMenu);
-            } else {
-                try {
-                    const res = await fetch('/api/menu');
-                    if (res.ok) { menuData = await res.json(); }
-                } catch (e) { menuData = []; }
-            }
-            saveMenuLocal();
-            renderMenu();
+            if (typeof firebase === "undefined" || !firebase.database) return;
+            firebase.database().ref('menu').on('value', snap => {
+                const data = snap.val();
+                if (data) {
+                    menuData = Object.keys(data).map(key => ({ _id: key, ...data[key] }));
+                } else {
+                    menuData = [];
+                }
+                renderMenu();
+            });
         }
 
         function saveMenuLocal() {
@@ -267,7 +265,7 @@
                 </div>`).join('');
         }
 
-        function addMenu() {
+        async function addMenu() {
             const name = document.getElementById('new-item-name').value;
             const price = document.getElementById('new-item-price').value;
             const category = document.getElementById('new-item-category').value;
@@ -276,46 +274,43 @@
             const encodedName = encodeURIComponent(name);
             const imgUrl = `https://image.pollinations.ai/prompt/a%20delicious%20plate%20of%20${encodedName}%20realistic%20food%20photography?width=400&height=400&nologo=true&seed=42`;
             
+            const id = 'item_' + Date.now();
             const newItem = {
-                _id: 'item_' + Date.now(),
                 name: name,
-                subtitle: category,
                 price: parseInt(price),
                 img: imgUrl,
                 category: category,
                 available: true
             };
-            menuData.push(newItem);
-            saveMenuLocal();
-            document.getElementById('new-item-name').value = '';
-            document.getElementById('new-item-price').value = '';
-            renderMenu();
+            
+            try {
+                await firebase.database().ref('menu/' + id).set(newItem);
+                document.getElementById('new-item-name').value = '';
+                document.getElementById('new-item-price').value = '';
+                alert("Item Added!");
+            } catch(e) { alert("Error adding item: " + e.message); }
         }
 
-        function updatePrice(id) {
+        async function updatePrice(id) {
             const price = document.getElementById(`price-${id}`).value;
-            const idx = menuData.findIndex(m => m._id === id);
-            if (idx !== -1) {
-                menuData[idx].price = parseInt(price);
-                saveMenuLocal();
+            try {
+                await firebase.database().ref('menu/' + id).update({ price: parseInt(price) });
                 alert("Price Saved!");
-            }
+            } catch(e) { alert("Error updating price: " + e.message); }
         }
 
-        function toggleAvailable(id, isAvailable) {
-            const idx = menuData.findIndex(m => m._id === id);
-            if (idx !== -1) {
-                menuData[idx].available = isAvailable;
-                saveMenuLocal();
-                renderMenu();
-            }
+        async function toggleAvailable(id, isAvailable) {
+            try {
+                await firebase.database().ref('menu/' + id).update({ available: isAvailable });
+            } catch(e) { alert("Error updating status: " + e.message); }
         }
 
-        function deleteMenu(id) {
+        async function deleteMenu(id) {
             if (!confirm('Delete this item?')) return;
-            menuData = menuData.filter(m => m._id !== id);
-            saveMenuLocal();
-            renderMenu();
+            try {
+                await firebase.database().ref('menu/' + id).remove();
+                alert("Item Deleted!");
+            } catch(e) { alert("Error deleting item: " + e.message); }
         }
 
         function logout() { localStorage.removeItem('adminToken'); window.location.href = 'owner-login.html'; }
