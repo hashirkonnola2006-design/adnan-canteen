@@ -189,11 +189,13 @@
                 <span class="material-symbols-outlined text-[22px] mb-1">receipt_long</span>
                 <span class="text-[9px] font-bold uppercase tracking-widest">Orders</span>
             </a>
-            <a href="profile.html"
-                class="nav-inactive hover:text-gray-900 flex flex-col items-center px-4 py-2 transition-all active:scale-95">
-                <span class="material-symbols-outlined text-[22px] mb-1">person</span>
-                <span class="text-[9px] font-bold uppercase tracking-widest">Profile</span>
-            </a>
+                <a href="profile.html"
+                    class="nav-inactive hover:text-gray-900 flex flex-col items-center px-4 py-2 transition-all active:scale-95"
+                    onclick="event.stopPropagation();"
+                    >
+                    <span class="material-symbols-outlined text-[22px] mb-1">person</span>
+                    <span class="text-[9px] font-bold uppercase tracking-widest">Profile</span>
+                </a>
         </nav>
     </div>
 
@@ -203,6 +205,11 @@
         let currentCategory = 'All';
 
         function initFirebaseAndFetchMenu() {
+            if (typeof firebase === "undefined" || !firebase.database) {
+                console.error("Firebase SDK not loaded. Menu cannot be fetched.");
+                document.getElementById('loading-spinner').innerHTML = `<span class="text-xs text-red-500 font-bold">Firebase not available.</span>`;
+                return;
+            }
             const db = firebase.database();
             // Realtime listener - auto-updates when admin changes menu
             db.ref('menu').on('value', snapshot => {

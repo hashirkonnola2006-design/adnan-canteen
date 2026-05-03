@@ -12,7 +12,10 @@ const firebaseConfig = {
 
 // Initialize Firebase using the global `firebase` object provided by the CDN scripts.
 if (typeof firebase !== "undefined" && firebase.initializeApp) {
-  firebase.initializeApp(firebaseConfig);
+  // Prevent re-initialization if an app already exists
+  if (!firebase.apps || firebase.apps.length === 0) {
+    firebase.initializeApp(firebaseConfig);
+  }
 } else {
   console.error("Firebase SDK not loaded. Ensure firebase-app.js script is included before firebase-config.js.");
 }
