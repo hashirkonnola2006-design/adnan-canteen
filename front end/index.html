@@ -1,51 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Select Your College | Smart Canteen</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <script>
-        tailwind.config = { theme: { extend: { colors: { "primary": "#9f4122", "background": "#fff5f2", "accent": "#ff8a65", "teal": "#00bfae" } } } }
-    </script>
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f4f6; scroll-behavior: smooth; margin: 0; height: 100vh; overflow: hidden; display: flex; justify-content: center; }
-        .mobile-container { width: 100%; max-width: 414px; height: 100vh; background-color: #fff5f2; position: relative; overflow-x: hidden; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; justify-content: center; padding: 2rem; }
-        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.3); }
-    </style>
-</head>
-<body>
-    <div class="mobile-container">
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-black text-primary tracking-tight">Smart Canteen</h1>
-        </div>
-        <div class="glass-card rounded-[2rem] p-6 shadow-xl">
-            <h2 class="text-lg font-black text-gray-900 mb-4">Select your college</h2>
-            <select id="collegeSelect" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-primary mb-6">
-                <option value="COET Thalassery">COET Thalassery</option>
-            </select>
-            <button onclick="saveCollege()" class="w-full bg-primary text-white font-black py-4 rounded-full shadow-lg active:scale-95 transition-all uppercase text-xs tracking-widest flex justify-center items-center gap-2">
-                Continue <span class="material-symbols-outlined text-sm">arrow_forward</span>
-            </button>
-        </div>
-    </div>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Canteen</title>
     <script>
         window.onload = () => {
-            if (localStorage.getItem('studentName') && localStorage.getItem('selectedCollege')) {
+            if (localStorage.getItem('hasVisited')) {
                 window.location.href = "menu.html";
+            } else {
+                window.location.href = "welcome.html";
             }
         };
-        function saveCollege() {
-            localStorage.setItem('selectedCollege', document.getElementById('collegeSelect').value);
-            if (!localStorage.getItem('studentName')) {
-                localStorage.setItem('studentName', 'Student');
-                localStorage.setItem('studentId', '000');
-                localStorage.setItem('department', 'CS');
-            }
-            window.location.href = "menu.html";
-        }
     </script>
+</head>
+<body>
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; background-color: #fff5f2; color: #9f4122;">
+        <h3>Loading Smart Canteen...</h3>
+    </div>
 </body>
 </html>
