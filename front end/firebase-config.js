@@ -1,9 +1,5 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
+// Firebase configuration for global namespace (no module imports)
+// Ensure the Firebase SDK scripts are loaded before this file.
 const firebaseConfig = {
   apiKey: "AIzaSyAxLZHhuYqqpKNKKlkirbvTJASCFZCCXtc",
   authDomain: "ktu-canteen.firebaseapp.com",
@@ -14,5 +10,9 @@ const firebaseConfig = {
   appId: "1:544929346174:web:ee44431daebee82bc01e2f"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase using the global `firebase` object provided by the CDN scripts.
+if (typeof firebase !== "undefined" && firebase.initializeApp) {
+  firebase.initializeApp(firebaseConfig);
+} else {
+  console.error("Firebase SDK not loaded. Ensure firebase-app.js script is included before firebase-config.js.");
+}
