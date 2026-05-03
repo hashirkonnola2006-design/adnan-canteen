@@ -133,8 +133,8 @@
         function saveCollege() {
             localStorage.setItem('selectedCollege', document.getElementById('collegeSelect').value);
             localStorage.setItem('hasVisited', 'true');
-            if (!localStorage.getItem('studentName')) {
-                localStorage.setItem('studentName', 'Student');
+            if (!localStorage.getItem('guestName')) {
+                localStorage.setItem('guestName', 'Student');
                 localStorage.setItem('studentId', '000');
                 localStorage.setItem('department', 'CS');
             }

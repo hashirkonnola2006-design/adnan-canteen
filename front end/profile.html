@@ -181,12 +181,9 @@
         }
 
         function logout() {
-            if (confirm("Are you sure you want to logout? Your profile data will be cleared.")) {
+            if (confirm("Logout and return to welcome page?")) {
                 localStorage.removeItem('selectedCollege');
                 localStorage.removeItem('hasVisited');
-                localStorage.removeItem('guestName');
-                localStorage.removeItem('studentId');
-                localStorage.removeItem('department');
                 window.location.href = "welcome.html";
             }
         }
