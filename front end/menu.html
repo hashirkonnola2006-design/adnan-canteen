@@ -123,6 +123,17 @@
             box-shadow: 0 4px 12px rgba(159, 65, 34, 0.2);
         }
 
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
         /* Improved Navigation Hit Area */
         .nav-item {
             position: relative;
@@ -184,11 +195,21 @@
         </header>
 
         <main class="relative z-10 px-5 pt-[180px] pb-6">
-            <div id="loading-spinner" class="flex flex-col items-center justify-center py-10 opacity-60">
-                <span class="material-symbols-outlined animate-spin text-3xl text-primary mb-2">autorenew</span>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Loading Menu...</span>
+            <div id="loading-spinner" class="grid grid-cols-2 gap-4 py-4">
+                <div class="glass-card rounded-[2rem] p-4 flex flex-col gap-3">
+                    <div class="aspect-square rounded-2xl skeleton"></div>
+                    <div class="h-3 w-1/2 skeleton rounded-full"></div>
+                    <div class="h-4 w-3/4 skeleton rounded-full"></div>
+                    <div class="h-8 w-full skeleton rounded-xl"></div>
+                </div>
+                <div class="glass-card rounded-[2rem] p-4 flex flex-col gap-3">
+                    <div class="aspect-square rounded-2xl skeleton"></div>
+                    <div class="h-3 w-1/2 skeleton rounded-full"></div>
+                    <div class="h-4 w-3/4 skeleton rounded-full"></div>
+                    <div class="h-8 w-full skeleton rounded-xl"></div>
+                </div>
             </div>
-            <div class="grid grid-cols-2 gap-4" id="menu-grid"></div>
+            <div id="menu-grid" class="grid grid-cols-2 gap-4"></div>
         </main>
 
         <div id="cart-bar"

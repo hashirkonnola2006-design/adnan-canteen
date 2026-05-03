@@ -276,8 +276,11 @@
             if (!name || !price) return alert("Fill all fields");
 
             const id = 'item_' + Date.now();
-            // Default food image if none provided
-            const imgUrl = `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80`;
+            
+            // Optimized AI Image Generation
+            const encodedName = encodeURIComponent(name);
+            const seed = Math.floor(Math.random() * 1000);
+            const imgUrl = `https://image.pollinations.ai/prompt/delicious%20${encodedName}%20food%20photography%20studio%20light%20white%20background%20highly%20detailed?width=300&height=300&nologo=true&seed=${seed}`;
             
             const newItem = {
                 name: name,
@@ -305,11 +308,15 @@
             let count = 0;
             for (const item of items) {
                 const id = item.id || 'item_' + (Date.now() + count);
+                const encodedName = encodeURIComponent(item.name);
+                const seed = Math.floor(Math.random() * 1000);
+                const aiImg = `https://image.pollinations.ai/prompt/delicious%20${encodedName}%20food%20photography?width=300&height=300&nologo=true&seed=${seed}`;
+                
                 await firebase.database().ref('menu/' + id).set({
                     name: item.name,
                     price: item.price,
                     category: item.category || 'General',
-                    img: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
+                    img: item.img || aiImg,
                     available: item.available !== false
                 });
                 count++;
