@@ -75,8 +75,11 @@
                                     <option value="Meals">Meals</option><option value="Snacks">Snacks</option><option value="Drinks">Drinks</option>
                                 </select>
                             </div>
-                            <button onclick="addMenu()" class="w-full bg-gray-900 hover:bg-black text-white rounded-xl py-3 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md mt-1">
-                                <span class="material-symbols-outlined text-lg">add_circle</span> Add Item to Menu
+                            <button onclick="saveItem()" id="save-btn" class="w-full bg-gray-900 hover:bg-black text-white rounded-xl py-3 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md mt-1">
+                                <span class="material-symbols-outlined text-lg" id="save-btn-icon">add_circle</span> <span id="save-btn-text">Add Item to Menu</span>
+                            </button>
+                            <button onclick="cancelEdit()" id="cancel-edit-btn" class="hidden w-full bg-gray-200 text-gray-500 rounded-xl py-3 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">
+                                Cancel Editing
                             </button>
                         </div>
                     </div>
@@ -122,6 +125,7 @@
     <script>
         let allOrders = [];
         let menuData = [];
+        let editingId = null;
 
         async function verifyAuth() {
             if (!localStorage.getItem('adminToken')) window.location.href = 'owner-login.html';
@@ -239,12 +243,10 @@
             document.getElementById('menu-list').innerHTML = sortedMenu.map(item => `
                 <div class="bg-white border ${item.available ? 'border-gray-200' : 'border-red-200 bg-red-50/30'} rounded-2xl p-4 flex flex-col gap-3 shadow-sm transition-all relative overflow-hidden">
                     ${!item.available ? '<div class="absolute -right-6 top-3 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-8 py-0.5 rotate-45 shadow-sm z-10">Sold Out</div>' : ''}
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1 pr-6">
-                            <h4 class="font-bold text-gray-900 text-sm leading-tight">${item.name}</h4>
-                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">${item.category}</div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="editMenu('${item._id}')" class="text-gray-400 hover:text-primary active:scale-90 transition-all"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+                            <button onclick="deleteMenu('${item._id}')" class="text-gray-400 hover:text-red-500 active:scale-90 transition-all"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                         </div>
-                        <button onclick="deleteMenu('${item._id}')" class="text-gray-400 hover:text-red-500 active:scale-90 transition-all"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                     </div>
                     
                     <div class="flex items-center justify-between mt-1 pt-3 border-t ${item.available ? 'border-gray-100' : 'border-red-100'}">
@@ -265,33 +267,89 @@
                 </div>`).join('');
         }
 
-        async function addMenu() {
+        function editMenu(id) {
+            const item = menuData.find(i => i._id === id);
+            if (!item) return;
+            
+            editingId = id;
+            document.getElementById('new-item-name').value = item.name;
+            document.getElementById('new-item-price').value = item.price;
+            document.getElementById('new-item-category').value = item.category || 'Meals';
+            
+            document.getElementById('save-btn-text').innerText = "Update Item";
+            document.getElementById('save-btn-icon').innerText = "save";
+            document.getElementById('save-btn').className = "w-full bg-primary hover:bg-accent text-white rounded-xl py-3 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md mt-1";
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            
+            // Scroll to form
+            document.querySelector('#tab-menu div.bg-gray-50').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            editingId = null;
+            document.getElementById('new-item-name').value = '';
+            document.getElementById('new-item-price').value = '';
+            document.getElementById('save-btn-text').innerText = "Add Item to Menu";
+            document.getElementById('save-btn-icon').innerText = "add_circle";
+            document.getElementById('save-btn').className = "w-full bg-gray-900 hover:bg-black text-white rounded-xl py-3 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md mt-1";
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+        }
+
+        async function saveItem() {
+            if (editingId) return updateMenu();
+            
             const name = document.getElementById('new-item-name').value;
             const price = document.getElementById('new-item-price').value;
             const category = document.getElementById('new-item-category').value;
             if (!name || !price) return alert("Fill all fields");
 
-            const id = 'item_' + Date.now();
+            // Check for duplicate
+            const existing = menuData.find(i => i.name.toLowerCase() === name.toLowerCase());
+            if (existing) {
+                if (!confirm(`An item with the name "${name}" already exists. Do you want to overwrite it?`)) return;
+            }
+
+            const id = existing ? existing._id : 'item_' + Date.now();
             
-            // Optimized AI Image Generation
-            const encodedName = encodeURIComponent(name);
-            const seed = Math.floor(Math.random() * 1000);
-            const imgUrl = `https://image.pollinations.ai/prompt/delicious%20${encodedName}%20food%20photography%20studio%20light%20white%20background%20highly%20detailed?width=300&height=300&nologo=true&seed=${seed}`;
+            // Optimized AI Image Generation (only if new or if they want to regenerate)
+            let imgUrl = existing ? existing.img : null;
+            if (!imgUrl) {
+                const encodedName = encodeURIComponent(name);
+                const seed = Math.floor(Math.random() * 1000);
+                imgUrl = `https://image.pollinations.ai/prompt/delicious%20${encodedName}%20food%20photography%20studio%20light%20white%20background%20highly%20detailed?width=300&height=300&nologo=true&seed=${seed}`;
+            }
             
             const newItem = {
                 name: name,
                 price: parseInt(price),
                 img: imgUrl,
                 category: category,
-                available: true
+                available: existing ? (existing.available !== false) : true
             };
             
             try {
                 await firebase.database().ref('menu/' + id).set(newItem);
                 document.getElementById('new-item-name').value = '';
                 document.getElementById('new-item-price').value = '';
-                alert("Item Added!");
-            } catch(e) { alert("Error adding item: " + e.message); }
+                alert(existing ? "Item Overwritten!" : "Item Added!");
+            } catch(e) { alert("Error: " + e.message); }
+        }
+
+        async function updateMenu() {
+            const name = document.getElementById('new-item-name').value;
+            const price = document.getElementById('new-item-price').value;
+            const category = document.getElementById('new-item-category').value;
+            if (!name || !price) return alert("Fill all fields");
+
+            try {
+                await firebase.database().ref('menu/' + editingId).update({
+                    name: name,
+                    price: parseInt(price),
+                    category: category
+                });
+                alert("Item Updated!");
+                cancelEdit();
+            } catch(e) { alert("Error: " + e.message); }
         }
 
         async function syncLegacyData() {
@@ -299,11 +357,19 @@
             if (!localMenu) return alert("No local data found to sync.");
             
             const items = JSON.parse(localMenu);
-            if (!confirm(`Found ${items.length} local items. Sync them to the cloud?`)) return;
+            if (!confirm(`Found ${items.length} local items. Sync them to the cloud? (Existing items with the same name will be skipped)`)) return;
 
             let count = 0;
+            let skipped = 0;
             for (const item of items) {
-                const id = item.id || 'item_' + (Date.now() + count);
+                // Check if already exists in cloud menuData
+                const exists = menuData.find(i => i.name.toLowerCase() === item.name.toLowerCase());
+                if (exists) {
+                    skipped++;
+                    continue;
+                }
+
+                const id = 'item_' + (Date.now() + count);
                 const encodedName = encodeURIComponent(item.name);
                 const seed = Math.floor(Math.random() * 1000);
                 const aiImg = `https://image.pollinations.ai/prompt/delicious%20${encodedName}%20food%20photography?width=300&height=300&nologo=true&seed=${seed}`;
@@ -317,7 +383,7 @@
                 });
                 count++;
             }
-            alert(`Successfully synced ${count} items!`);
+            alert(`Synced ${count} items! (Skipped ${skipped} existing items)`);
         }
 
         async function updatePrice(id) {
