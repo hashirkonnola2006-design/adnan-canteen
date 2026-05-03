@@ -253,12 +253,20 @@
                         renderMenu();
                     } else {
                         console.warn("No valid menu items found in snapshot.");
-                        document.getElementById('loading-spinner').innerHTML = `<span class="text-xs text-orange-500 font-bold uppercase tracking-widest">Menu unavailable - please try again later</span>`;
+                        document.getElementById('loading-spinner').innerHTML = `
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="material-symbols-outlined text-3xl text-orange-400">restaurant_menu</span>
+                                <span class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Canteen is preparing menu...</span>
+                            </div>`;
                     }
                 } else {
-                    console.warn("Snapshot is empty or null.");
+                    console.warn("Snapshot is empty or null. No 'menu' node exists in Firebase.");
                     menuData = [];
-                    document.getElementById('loading-spinner').innerHTML = `<span class="text-xs text-orange-500 font-bold">Menu unavailable - please try again later</span>`;
+                    document.getElementById('loading-spinner').innerHTML = `
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="material-symbols-outlined text-3xl text-gray-300">hourglass_empty</span>
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Waiting for items...</span>
+                        </div>`;
                 }
             }, err => {
                 console.error("Firebase fetch error:", err);

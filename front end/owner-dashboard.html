@@ -80,8 +80,12 @@
                             </button>
                         </div>
                     </div>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pl-1">Current Menu Items</p>
                     <div id="menu-list" class="space-y-4"></div>
+                    <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+                        <button onclick="syncLegacyData()" class="text-[10px] font-black text-primary uppercase tracking-[0.2em] opacity-60 hover:opacity-100 transition-all flex items-center justify-center gap-2 mx-auto">
+                            <span class="material-symbols-outlined text-sm">sync</span> Sync Legacy Local Items
+                        </button>
+                    </div>
                 </div>
             </div>
             <div id="tab-settings" class="dash-tab space-y-6">
@@ -269,12 +273,12 @@
             const name = document.getElementById('new-item-name').value;
             const price = document.getElementById('new-item-price').value;
             const category = document.getElementById('new-item-category').value;
-            if (!name || !price) return alert('Enter name and price');
-            
-            const encodedName = encodeURIComponent(name);
-            const imgUrl = `https://image.pollinations.ai/prompt/a%20delicious%20plate%20of%20${encodedName}%20realistic%20food%20photography?width=400&height=400&nologo=true&seed=42`;
-            
+            if (!name || !price) return alert("Fill all fields");
+
             const id = 'item_' + Date.now();
+            // Default food image if none provided
+            const imgUrl = `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80`;
+            
             const newItem = {
                 name: name,
                 price: parseInt(price),
@@ -289,6 +293,28 @@
                 document.getElementById('new-item-price').value = '';
                 alert("Item Added!");
             } catch(e) { alert("Error adding item: " + e.message); }
+        }
+
+        async function syncLegacyData() {
+            const localMenu = localStorage.getItem('canteenMenu');
+            if (!localMenu) return alert("No local data found to sync.");
+            
+            const items = JSON.parse(localMenu);
+            if (!confirm(`Found ${items.length} local items. Sync them to the cloud?`)) return;
+
+            let count = 0;
+            for (const item of items) {
+                const id = item.id || 'item_' + (Date.now() + count);
+                await firebase.database().ref('menu/' + id).set({
+                    name: item.name,
+                    price: item.price,
+                    category: item.category || 'General',
+                    img: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
+                    available: item.available !== false
+                });
+                count++;
+            }
+            alert(`Successfully synced ${count} items!`);
         }
 
         async function updatePrice(id) {
